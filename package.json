@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "tsx src/migrations/migrate.ts",
     "db:migrate:prod": "node dist/migrations/migrate.js",
-    "db:seed": "node dist/seeders/seed.js"
+    "db:seed": "node dist/seeders/seed.js",
+    "serve:token": "node serve-token-page.js"
   },
   "keywords": [
     "messaging",
