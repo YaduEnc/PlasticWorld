@@ -23,7 +23,7 @@ if (isDevelopment) {
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: isDevelopment ? 5000 : 15000, // Shorter timeout for dev, longer for prod
+  timeout: 30000, // 30 seconds timeout - Cloudflare Tunnel can be slow
   headers: {
     'Content-Type': 'application/json',
   },

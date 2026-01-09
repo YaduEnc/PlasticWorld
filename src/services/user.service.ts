@@ -38,6 +38,7 @@ export interface UpdateUserData {
 class UserService {
   /**
    * Generate a unique username from email or name
+   * Optimized: Uses database conflict handling instead of multiple queries
    */
   private async generateUniqueUsername(email: string, name: string): Promise<string> {
     // Extract base username from email (before @) or name
@@ -58,21 +59,39 @@ class UserService {
       baseUsername = baseUsername.substring(0, 27);
     }
     
-    // Check if username is available
-    let username = baseUsername;
-    let counter = 1;
+    // Try base username first (most common case)
+    if (await this.isUsernameAvailable(baseUsername)) {
+      return baseUsername;
+    }
     
-    while (!(await this.isUsernameAvailable(username))) {
-      const suffix = counter.toString();
-      const maxLength = 30 - suffix.length;
-      username = baseUsername.substring(0, maxLength) + suffix;
-      counter++;
-      
-      // Safety check to prevent infinite loop
-      if (counter > 10000) {
-        username = 'user' + Date.now().toString().substring(7);
-        break;
+    // If taken, find next available with single query
+    const result = await database.query<{ username: string }>(
+      `SELECT username FROM users 
+       WHERE username LIKE $1 
+       ORDER BY username DESC 
+       LIMIT 1`,
+      [`${baseUsername}%`]
+    );
+    
+    let counter = 1;
+    if (result.rows.length > 0) {
+      const lastUsername = result.rows[0].username;
+      const match = lastUsername.match(new RegExp(`^${baseUsername}(\\d+)$`));
+      if (match) {
+        counter = parseInt(match[1], 10) + 1;
       }
+    }
+    
+    // Generate username with counter
+    let username = `${baseUsername}${counter}`;
+    while (!(await this.isUsernameAvailable(username)) && counter < 1000) {
+      counter++;
+      username = `${baseUsername}${counter}`;
+    }
+    
+    // Fallback if still not available
+    if (counter >= 1000) {
+      username = 'user' + Date.now().toString().substring(7);
     }
     
     return username;
@@ -116,6 +135,42 @@ class UserService {
       logger.error('Failed to create user', {
         error: error instanceof Error ? error.message : 'Unknown error',
         firebaseUid: data.firebaseUid,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get user by Firebase UID OR email (optimized single query)
+   */
+  async getUserByFirebaseUidOrEmail(firebaseUid: string, email: string | undefined, includeInactive: boolean = false): Promise<User | null> {
+    try {
+      const whereClause = includeInactive 
+        ? '(firebase_uid = $1 OR email = $2)'
+        : '(firebase_uid = $1 OR email = $2) AND is_active = true';
+      
+      const result = await database.query<User>(
+        `SELECT 
+          id, firebase_uid as "firebaseUid", username, email,
+          phone_number as "phoneNumber", name, age,
+          profile_picture_url as "profilePictureUrl", bio,
+          status, last_seen as "lastSeen", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM users
+        WHERE ${whereClause}
+        ORDER BY 
+          CASE WHEN firebase_uid = $1 THEN 1 ELSE 2 END,
+          created_at DESC
+        LIMIT 1`,
+        [firebaseUid, email || '']
+      );
+
+      return result.rows[0] || null;
+    } catch (error) {
+      logger.error('Failed to get user by Firebase UID or email', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        firebaseUid,
+        email,
       });
       throw error;
     }

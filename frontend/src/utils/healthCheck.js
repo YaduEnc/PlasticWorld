@@ -10,9 +10,9 @@ export const checkBackendHealth = async () => {
     // Get base URL without /api/v1
     const baseUrl = API_BASE_URL.replace('/api/v1', '')
     
-    // Try health endpoint first
+    // Try health endpoint first with longer timeout for Cloudflare Tunnel
     const response = await axios.get(`${baseUrl}/health`, { 
-      timeout: 3000 
+      timeout: 10000 // 10 seconds for health check
     })
     return { healthy: true, response }
   } catch (error) {

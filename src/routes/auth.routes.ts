@@ -36,13 +36,8 @@ router.post(
     const name = decodedToken.name || 'User';
     const picture = decodedToken.picture;
 
-    // Check if user exists (including inactive)
-    let user = await userService.getUserByFirebaseUid(firebaseUid, true);
-
-    // If user doesn't exist, check by email (in case Firebase UID changed)
-    if (!user && email) {
-      user = await userService.getUserByEmail(email, true);
-    }
+    // Optimized: Check user by Firebase UID OR email in single query
+    let user = await userService.getUserByFirebaseUidOrEmail(firebaseUid, email, true);
 
     // If user exists but is inactive, reactivate them
     if (user && !user.isActive) {
@@ -114,18 +109,18 @@ router.post(
     // Generate JWT tokens
     const tokenPair = jwtService.generateTokenPair(user.id, device.id);
 
-    // Create session
-    await sessionService.createSession(
-      user.id,
-      device.id,
-      tokenPair.accessToken,
-      tokenPair.refreshToken,
-      req.ip || undefined,
-      req.get('user-agent') || undefined
-    );
-
-    // Update user last seen
-    await userService.updateLastSeen(user.id);
+    // Optimized: Create session and update last seen in parallel
+    await Promise.all([
+      sessionService.createSession(
+        user.id,
+        device.id,
+        tokenPair.accessToken,
+        tokenPair.refreshToken,
+        req.ip || undefined,
+        req.get('user-agent') || undefined
+      ),
+      userService.updateLastSeen(user.id)
+    ]);
 
     logger.info('User signed in successfully', {
       userId: user.id,
