@@ -57,19 +57,36 @@ echo -e "${YELLOW}⏳ Waiting for databases to be ready...${NC}"
 sleep 5
 
 echo -e "${YELLOW}🔄 Running database migrations...${NC}"
-# Update DB_HOST to localhost for migration
-DB_HOST=localhost npm run db:migrate:prod
+# Load environment variables from .env.production and override DB_HOST/REDIS_HOST
+# Install dotenv-cli locally if needed
+if [ ! -f node_modules/.bin/dotenv ]; then
+    npm install --save-dev dotenv-cli
+fi
+# Run migration with environment variables loaded
+./node_modules/.bin/dotenv -e .env.production -- DB_HOST=localhost REDIS_HOST=localhost npm run db:migrate:prod
 
 echo -e "${YELLOW}🚀 Starting backend with PM2...${NC}"
 # Stop existing PM2 process if running
 pm2 delete plasticworld-backend 2>/dev/null || true
 
-# Start with PM2
-# Update environment variables for direct connection
-DB_HOST=localhost REDIS_HOST=localhost pm2 start dist/server.js \
-    --name plasticworld-backend \
-    --env production \
-    --update-env
+# Create PM2 ecosystem file with environment variables
+cat > ecosystem.config.js << EOF
+module.exports = {
+  apps: [{
+    name: 'plasticworld-backend',
+    script: 'dist/server.js',
+    env_production: {
+      NODE_ENV: 'production',
+      DB_HOST: 'localhost',
+      REDIS_HOST: 'localhost',
+      $(grep -v '^#' .env.production | grep -v '^$' | sed 's/^/      /')
+    }
+  }]
+};
+EOF
+
+# Start with PM2 using ecosystem file
+pm2 start ecosystem.config.js --env production --update-env
 
 echo -e "${GREEN}✅ Deployment complete!${NC}"
 echo ""
