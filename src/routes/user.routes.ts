@@ -11,6 +11,7 @@ import {
   updateStatusSchema,
   searchUsersQuerySchema,
 } from '../utils/validation';
+import { deleteFirebaseUser } from '../config/firebase';
 import logger from '../utils/logger';
 
 const router = Router();

@@ -69,7 +69,24 @@ async function verifyIdToken(idToken: string): Promise<admin.auth.DecodedIdToken
   }
 }
 
+/**
+ * Delete user from Firebase Authentication
+ */
+async function deleteFirebaseUser(firebaseUid: string): Promise<void> {
+  try {
+    const auth = getAuth();
+    await auth.deleteUser(firebaseUid);
+    logger.info('Firebase user deleted successfully', { firebaseUid });
+  } catch (error) {
+    logger.error('Failed to delete Firebase user', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      firebaseUid,
+    });
+    throw error;
+  }
+}
+
 // Don't initialize on module load - let server.ts call it after dotenv loads
 
-export { getAuth, verifyIdToken, initializeFirebase };
+export { getAuth, verifyIdToken, initializeFirebase, deleteFirebaseUser };
 export default admin;
