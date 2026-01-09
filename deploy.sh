@@ -32,20 +32,20 @@ echo -e "${YELLOW}📦 Building Docker images...${NC}"
 docker compose -f docker-compose.prod.yml build --no-cache
 
 echo -e "${YELLOW}🛑 Stopping existing containers...${NC}"
-docker compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml --env-file .env.production down
 
 echo -e "${YELLOW}🗄️  Starting database services...${NC}"
-# env_file in docker-compose.prod.yml will load .env.production automatically
-docker compose -f docker-compose.prod.yml up -d postgres redis
+# --env-file loads variables for Docker Compose variable substitution
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d postgres redis
 
 echo -e "${YELLOW}⏳ Waiting for databases to be ready...${NC}"
 sleep 10
 
 echo -e "${YELLOW}🔄 Running database migrations...${NC}"
-docker compose -f docker-compose.prod.yml run --rm backend npm run db:migrate:prod
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npm run db:migrate:prod
 
 echo -e "${YELLOW}🚀 Starting all services...${NC}"
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
 
 echo -e "${YELLOW}⏳ Waiting for services to be healthy...${NC}"
 sleep 15
