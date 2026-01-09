@@ -1,0 +1,10 @@
+tunnel: YOUR_TUNNEL_ID
+credentials-file: /home/yadurajdoc/.cloudflared/YOUR_TUNNEL_ID.json
+
+ingress:
+  # Route API subdomain to backend
+  - hostname: api.yaduraj.me
+    service: http://localhost:3000
+  
+  # Catch-all rule (must be last)
+  - service: http_status:404
