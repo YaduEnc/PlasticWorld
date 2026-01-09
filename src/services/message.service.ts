@@ -199,6 +199,7 @@ class MessageService {
 
   /**
    * Get conversation between two users
+   * Returns messages with encryptedContent and encryptedKey as base64 strings for API serialization
    */
   async getConversation(
     userId1: string,
@@ -206,7 +207,13 @@ class MessageService {
     limit: number = 50,
     offset: number = 0,
     beforeMessageId?: string
-  ): Promise<{ messages: Message[]; total: number }> {
+  ): Promise<{ 
+    messages: Array<Omit<Message, 'encryptedContent' | 'encryptedKey'> & {
+      encryptedContent: string | null;
+      encryptedKey: string | null;
+    }>; 
+    total: number 
+  }> {
     try {
       // Build WHERE clause
       let whereClause = `(
@@ -280,8 +287,13 @@ class MessageService {
         id: row.id,
         senderId: row.senderId,
         recipientId: row.recipientId,
-        encryptedContent: row.encryptedContent,
-        encryptedKey: row.encryptedKey,
+        // Convert Buffer to base64 string for JSON serialization
+        encryptedContent: row.encryptedContent 
+          ? row.encryptedContent.toString('base64')
+          : null,
+        encryptedKey: row.encryptedKey
+          ? row.encryptedKey.toString('base64')
+          : null,
         messageType: row.messageType,
         mediaUrl: row.mediaUrl,
         mediaSizeBytes: row.mediaSizeBytes,

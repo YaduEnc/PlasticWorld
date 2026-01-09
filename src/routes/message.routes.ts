@@ -119,25 +119,28 @@ router.get(
     res.status(200).json({
       success: true,
       data: {
-        messages: result.messages.map((msg) => ({
-          id: msg.id,
-          senderId: msg.senderId,
-          recipientId: msg.recipientId,
-          messageType: msg.messageType,
-          mediaUrl: msg.mediaUrl,
-          mediaSizeBytes: msg.mediaSizeBytes,
-          status: msg.status,
-          sentAt: msg.sentAt,
-          deliveredAt: msg.deliveredAt,
-          readAt: msg.readAt,
-          replyToMessageId: msg.replyToMessageId,
-          isEdited: msg.isEdited,
-          editedAt: msg.editedAt,
-          sender: msg.sender,
-          recipient: msg.recipient,
-          // Note: encryptedContent and encryptedKey are not sent in REST API
-          // They should be retrieved via WebSocket or a separate secure endpoint
-        })),
+        messages: result.messages.map((msg) => {
+          // encryptedContent and encryptedKey are already base64 strings from the service layer
+          return {
+            id: msg.id,
+            senderId: msg.senderId,
+            recipientId: msg.recipientId,
+            encryptedContent: msg.encryptedContent,
+            encryptedKey: msg.encryptedKey,
+            messageType: msg.messageType,
+            mediaUrl: msg.mediaUrl,
+            mediaSizeBytes: msg.mediaSizeBytes,
+            status: msg.status,
+            sentAt: msg.sentAt,
+            deliveredAt: msg.deliveredAt,
+            readAt: msg.readAt,
+            replyToMessageId: msg.replyToMessageId,
+            isEdited: msg.isEdited,
+            editedAt: msg.editedAt,
+            sender: msg.sender,
+            recipient: msg.recipient,
+          };
+        }),
         pagination: {
           total: result.total,
           limit: query.limit,
