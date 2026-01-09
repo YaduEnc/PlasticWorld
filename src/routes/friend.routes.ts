@@ -418,38 +418,4 @@ router.delete(
   })
 );
 
-/**
- * GET /api/v1/friends/requests/pending
- * Get pending friend requests (sent and received)
- */
-router.get(
-  '/requests/pending',
-  authenticate,
-  asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user!.id;
-
-    const result = await friendshipService.getPendingRequests(userId);
-
-    // Format response to show the other user
-    const formatFriendship = (friendship: any) => {
-      const otherUser =
-        friendship.requesterId === userId ? friendship.addressee : friendship.requester;
-      return {
-        id: friendship.id,
-        status: friendship.status,
-        requestedAt: friendship.requestedAt,
-        user: otherUser,
-      };
-    };
-
-    res.status(200).json({
-      success: true,
-      data: {
-        sent: result.sent.map(formatFriendship),
-        received: result.received.map(formatFriendship),
-      },
-    });
-  })
-);
-
 export default router;
