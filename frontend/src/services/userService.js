@@ -17,9 +17,9 @@ export const updateProfile = async (profileData) => {
 }
 
 /**
- * Get public user profile
+ * Get public user profile by userId
  */
-export const getUserProfile = async (userId) => {
+export const getPublicUserProfile = async (userId) => {
   const response = await api.get(`/users/${userId}`)
   return response.data.data.user
 }
