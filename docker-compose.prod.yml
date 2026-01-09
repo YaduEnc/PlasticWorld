@@ -48,6 +48,8 @@ services:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "127.0.0.1:5432:5432"  # Expose only to localhost for direct Node.js connection
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./src/migrations:/docker-entrypoint-initdb.d:ro
@@ -82,6 +84,8 @@ services:
       "
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "127.0.0.1:6379:6379"  # Expose only to localhost for direct Node.js connection
     volumes:
       - redis_data:/data
     networks:
