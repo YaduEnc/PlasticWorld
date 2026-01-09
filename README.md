@@ -804,15 +804,15 @@ stateDiagram-v2
     
     Encrypted --> Sending: POST /messages API call
     
-    Sending --> Sent: Message stored in database, status: "sent"
+    Sending --> Sent: Message stored in database
     
-    Sent --> Delivering: Recipient device receives (WebSocket or polling)
+    Sent --> Delivering: Recipient device receives
     
-    Delivering --> Delivered: POST /messages/:id/delivered, status: "delivered"
+    Delivering --> Delivered: Message delivered
     
     Delivered --> Reading: Recipient opens message
     
-    Reading --> Read: POST /messages/:id/read, status: "read"
+    Reading --> Read: Message read
     
     Read --> [*]: Message lifecycle complete
     
