@@ -343,6 +343,19 @@
             }
         }
         
+        function getTokenFromFirebasePage() {
+            // Try to get token from the Firebase token page if it's open
+            const firebaseToken = localStorage.getItem('firebase_id_token');
+            if (firebaseToken) {
+                // If we have Firebase token, we need to call the API to get access token
+                alert('Please use the Firebase token page (http://localhost:8080) to sign in and get your access token. Then copy the "accessToken" from the API response.');
+                window.open('http://localhost:8080', '_blank');
+            } else {
+                alert('Please open http://localhost:8080 in another tab, sign in, and copy the "accessToken" from the API response.');
+                window.open('http://localhost:8080', '_blank');
+            }
+        }
+        
         async function getCurrentUser() {
             const token = getAccessToken();
             if (!token) return;
