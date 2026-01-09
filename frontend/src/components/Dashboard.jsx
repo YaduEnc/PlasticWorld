@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getCurrentUser, signOut } from '../services/authService'
+import FriendsList from './FriendsList'
+import SearchUsers from './SearchUsers'
+import ProfileSettings from './ProfileSettings'
 import './Dashboard.css'
 
 const Dashboard = () => {
   const [user, setUser] = useState(null)
+  const [activeTab, setActiveTab] = useState('friends') // 'friends' | 'search' | 'settings'
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -21,6 +25,11 @@ const Dashboard = () => {
     navigate('/signin')
   }
 
+  const handleUserSelect = (selectedUser) => {
+    // Navigate to user profile or open chat (future feature)
+    console.log('Selected user:', selectedUser)
+  }
+
   if (!user) {
     return (
       <div className="dashboard-loading">
@@ -34,50 +43,55 @@ const Dashboard = () => {
       <nav className="dashboard-nav">
         <div className="dashboard-nav-container">
           <h1 className="dashboard-logo">PlasticWorld</h1>
-          <button className="dashboard-signout" onClick={handleSignOut}>
-            Sign Out
-          </button>
+          <div className="dashboard-nav-right">
+            <div className="dashboard-user-badge">
+              {user.profilePictureUrl ? (
+                <img
+                  src={user.profilePictureUrl}
+                  alt={user.name}
+                  className="dashboard-nav-avatar"
+                />
+              ) : (
+                <div className="dashboard-nav-avatar-placeholder">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="dashboard-nav-username">{user.name}</span>
+            </div>
+            <button className="dashboard-signout" onClick={handleSignOut}>
+              Sign Out
+            </button>
+          </div>
         </div>
       </nav>
 
       <div className="dashboard-content">
         <div className="dashboard-container">
-          <div className="dashboard-header">
-            <h2 className="dashboard-title">Welcome back!</h2>
-            <p className="dashboard-subtitle">
-              You're successfully signed in to PlasticWorld
-            </p>
+          <div className="dashboard-tabs">
+            <button
+              className={`dashboard-tab ${activeTab === 'friends' ? 'active' : ''}`}
+              onClick={() => setActiveTab('friends')}
+            >
+              Friends
+            </button>
+            <button
+              className={`dashboard-tab ${activeTab === 'search' ? 'active' : ''}`}
+              onClick={() => setActiveTab('search')}
+            >
+              Search
+            </button>
+            <button
+              className={`dashboard-tab ${activeTab === 'settings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('settings')}
+            >
+              Settings
+            </button>
           </div>
 
-          <div className="dashboard-card">
-            <h3 className="dashboard-card-title">Your Profile</h3>
-            <div className="dashboard-user-info">
-              {user.profilePictureUrl && (
-                <img
-                  src={user.profilePictureUrl}
-                  alt={user.name}
-                  className="dashboard-avatar"
-                />
-              )}
-              <div className="dashboard-user-details">
-                <p className="dashboard-user-name">{user.name}</p>
-                <p className="dashboard-user-email">{user.email}</p>
-                <p className="dashboard-user-username">@{user.username}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="dashboard-card">
-            <h3 className="dashboard-card-title">What's Next?</h3>
-            <p className="dashboard-card-text">
-              Phase 3 will add:
-            </p>
-            <ul className="dashboard-list">
-              <li>Friends list</li>
-              <li>Search users</li>
-              <li>Friend requests</li>
-              <li>Profile settings</li>
-            </ul>
+          <div className="dashboard-tab-content">
+            {activeTab === 'friends' && <FriendsList />}
+            {activeTab === 'search' && <SearchUsers onUserSelect={handleUserSelect} />}
+            {activeTab === 'settings' && <ProfileSettings />}
           </div>
         </div>
       </div>
