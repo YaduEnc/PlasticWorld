@@ -1,0 +1,120 @@
+.signin-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  background: var(--color-background);
+}
+
+.signin-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+.signin-content {
+  width: 100%;
+}
+
+.signin-header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.signin-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.signin-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.error-message {
+  padding: var(--spacing-md);
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: var(--border-radius);
+  color: #c33;
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+}
+
+.signin-button {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.signin-button:hover:not(:disabled) {
+  border-color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.signin-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.button-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-text);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.signin-footer {
+  margin-top: var(--spacing-xl);
+  text-align: center;
+}
+
+.signin-footer-text {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  line-height: 1.5;
+}
+
+.signin-link {
+  color: var(--color-text);
+  text-decoration: underline;
+  transition: var(--transition);
+}
+
+.signin-link:hover {
+  color: var(--color-text-secondary);
+}

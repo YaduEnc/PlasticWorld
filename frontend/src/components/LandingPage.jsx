@@ -17,7 +17,7 @@ const LandingPage = () => {
             <a href="#features" className="nav-link">Features</a>
             <a href="#security" className="nav-link">Security</a>
             <a href="#about" className="nav-link">About</a>
-            <button className="nav-button">Sign In</button>
+            <a href="/signin" className="nav-button">Sign In</a>
           </div>
           
           <button 
@@ -46,8 +46,8 @@ const LandingPage = () => {
               Simple, elegant, and secure.
             </p>
             <div className="hero-actions">
-              <button className="button-primary">Get Started</button>
-              <button className="button-secondary">Learn More</button>
+            <a href="/signin" className="button-primary">Get Started</a>
+            <a href="#features" className="button-secondary">Learn More</a>
             </div>
           </div>
         </div>
