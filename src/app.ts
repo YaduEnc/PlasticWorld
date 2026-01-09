@@ -18,19 +18,48 @@ app.set('trust proxy', 1);
 app.use(helmet());
 
 // CORS configuration
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN?.split(',') || [
+const getCorsOrigins = () => {
+  const defaultOrigins = [
     'http://localhost:3000',
     'http://localhost:8080',
     'http://localhost:8081',
     'http://localhost:8082',
     'http://localhost:8083', // For messaging test page
-    'http://localhost:5173',
-  ],
+    'http://localhost:5173', // Vite dev server
+  ];
+
+  // In production, merge CORS_ORIGIN with default localhost origins
+  // This allows local frontend development while connecting to production backend
+  if (process.env.CORS_ORIGIN) {
+    const productionOrigins = process.env.CORS_ORIGIN.split(',').map((origin: string) => origin.trim());
+    // Merge and deduplicate
+    return [...new Set([...defaultOrigins, ...productionOrigins])];
+  }
+
+  return defaultOrigins;
+};
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    const allowedOrigins = getCorsOrigins();
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      logger.warn('CORS blocked origin', { origin, allowedOrigins });
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
 };
 app.use(cors(corsOptions));
 
