@@ -70,20 +70,43 @@ echo -e "${YELLOW}🚀 Starting backend with PM2...${NC}"
 pm2 delete plasticworld-backend 2>/dev/null || true
 
 # Create PM2 ecosystem file with environment variables
-cat > ecosystem.config.js << EOF
+# Load all variables from .env.production and override DB_HOST/REDIS_HOST
+cat > ecosystem.config.js << 'ECOSYSTEM_EOF'
 module.exports = {
   apps: [{
     name: 'plasticworld-backend',
     script: 'dist/server.js',
     env_production: {
+ECOSYSTEM_EOF
+
+# Add all environment variables from .env.production
+while IFS='=' read -r key value; do
+  # Skip comments and empty lines
+  [[ "$key" =~ ^#.*$ ]] && continue
+  [[ -z "$key" ]] && continue
+  
+  # Remove quotes if present
+  value=$(echo "$value" | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
+  
+  # Special handling for DB_HOST and REDIS_HOST
+  if [ "$key" = "DB_HOST" ]; then
+    echo "      DB_HOST: 'localhost'," >> ecosystem.config.js
+  elif [ "$key" = "REDIS_HOST" ]; then
+    echo "      REDIS_HOST: 'localhost'," >> ecosystem.config.js
+  else
+    # Escape single quotes in value
+    value=$(echo "$value" | sed "s/'/\\\'/g")
+    echo "      $key: '$value'," >> ecosystem.config.js
+  fi
+done < .env.production
+
+# Add NODE_ENV and close the config
+cat >> ecosystem.config.js << 'ECOSYSTEM_EOF'
       NODE_ENV: 'production',
-      DB_HOST: 'localhost',
-      REDIS_HOST: 'localhost',
-      $(grep -v '^#' .env.production | grep -v '^$' | sed 's/^/      /')
     }
   }]
 };
-EOF
+ECOSYSTEM_EOF
 
 # Start with PM2 using ecosystem file
 pm2 start ecosystem.config.js --env production --update-env
