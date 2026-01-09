@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getUserProfile, updateProfile } from '../services/userService'
 import { getCurrentUser as getLocalUser } from '../services/authService'
+import { checkBackendHealth } from '../utils/healthCheck'
 import './ProfileSettings.css'
 
 const ProfileSettings = () => {
@@ -27,11 +28,35 @@ const ProfileSettings = () => {
       setLoading(true)
       setError(null)
       
-      // Try to load from API first
+      // Quick health check first
+      const health = await checkBackendHealth()
+      if (!health.healthy) {
+        console.warn('⚠️ Backend not accessible:', health.error)
+        // Use cached data immediately if backend is down
+        const localUser = getLocalUser()
+        if (localUser) {
+          console.log('Using cached user data - backend unavailable')
+          setUser(localUser)
+          setFormData({
+            name: localUser.name || '',
+            username: localUser.username || '',
+            bio: localUser.bio || '',
+            phoneNumber: localUser.phoneNumber || '',
+            profilePictureUrl: localUser.profilePictureUrl || '',
+          })
+          setError('Backend unavailable - using cached data. Changes will not be saved until backend is online.')
+          setLoading(false)
+          return
+        } else {
+          throw new Error('Backend unavailable and no cached data found')
+        }
+      }
+      
+      // Backend is healthy, try to load from API
       try {
-        console.log('Fetching user profile from API...')
+        console.log('✅ Backend is healthy, fetching user profile...')
         const userData = await getUserProfile()
-        console.log('User profile fetched successfully:', userData)
+        console.log('User profile fetched successfully')
         setUser(userData)
         setFormData({
           name: userData.name || '',
@@ -44,13 +69,6 @@ const ProfileSettings = () => {
         // If API fails, try to use local storage user
         console.warn('API call failed, using local user data:', apiError)
         
-        // Check if it's a timeout or network error
-        if (apiError.code === 'ECONNABORTED' || apiError.message?.includes('timeout')) {
-          console.warn('Request timed out - backend may not be running or accessible')
-        } else if (apiError.code === 'ERR_NETWORK') {
-          console.warn('Network error - check backend connection')
-        }
-        
         const localUser = getLocalUser()
         if (localUser) {
           console.log('Using cached user data from localStorage')
@@ -62,7 +80,6 @@ const ProfileSettings = () => {
             phoneNumber: localUser.phoneNumber || '',
             profilePictureUrl: localUser.profilePictureUrl || '',
           })
-          // Show a warning but don't set error since we have fallback data
           setError('Using cached data - backend connection failed. Some features may not work.')
         } else {
           throw apiError

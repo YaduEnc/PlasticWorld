@@ -7,12 +7,15 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
 const WS_URL = import.meta.env.VITE_WS_URL || 
   (isDevelopment ? 'ws://localhost:3000' : 'wss://plasticworld.yaduraj.me')
 
-console.log('API Configuration:', {
-  isDevelopment,
-  API_BASE_URL,
-  WS_URL,
-  env: import.meta.env.MODE
-})
+// Log API configuration (only in development)
+if (isDevelopment) {
+  console.log('🔧 API Configuration:', {
+    isDevelopment,
+    API_BASE_URL,
+    WS_URL,
+    env: import.meta.env.MODE
+  })
+}
 
 // Create axios instance
 const api = axios.create({
