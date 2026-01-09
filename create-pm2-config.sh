@@ -14,10 +14,15 @@ module.exports = {
 EOF
 
 # Load .env.production and add each variable
-while IFS='=' read -r key value || [ -n "$key" ]; do
+# Use a different approach to preserve = in values
+while IFS= read -r line || [ -n "$line" ]; do
   # Skip comments and empty lines
-  [[ "$key" =~ ^[[:space:]]*#.*$ ]] && continue
-  [[ -z "$key" ]] && continue
+  [[ "$line" =~ ^[[:space:]]*#.*$ ]] && continue
+  [[ -z "$line" ]] && continue
+  
+  # Split on first = only, preserving = in the value
+  key="${line%%=*}"
+  value="${line#*=}"
   
   # Remove ALL leading/trailing whitespace from key and value (more robust)
   key=$(echo -n "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr -d '\r\n')
