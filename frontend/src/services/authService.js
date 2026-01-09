@@ -47,8 +47,13 @@ export const signInWithGoogle = async (progressCallback) => {
     console.error('Sign in error:', error)
     
     // Provide better error messages
-    if (error.code === 'ERR_NETWORK') {
-      throw new Error('Network error. Please check if the backend is running.')
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://plasticworld.yaduraj.me/api/v1'
+      if (apiUrl.includes('localhost')) {
+        throw new Error('Cannot connect to local backend. Make sure the backend is running on localhost:3000, or set VITE_API_URL to use production backend.')
+      } else {
+        throw new Error('Cannot connect to backend server. Please check your internet connection or try again later.')
+      }
     }
     
     if (error.response?.data?.error) {

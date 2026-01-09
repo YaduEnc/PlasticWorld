@@ -1,11 +1,14 @@
 import axios from 'axios'
 
-// API Base URL - Use localhost for development, production URL otherwise
+// API Base URL
+// Priority: 1. VITE_API_URL env var, 2. Check if localhost backend is running, 3. Use production
 const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost'
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (isDevelopment ? 'http://localhost:3000/api/v1' : 'https://plasticworld.yaduraj.me/api/v1')
-const WS_URL = import.meta.env.VITE_WS_URL || 
-  (isDevelopment ? 'ws://localhost:3000' : 'wss://plasticworld.yaduraj.me')
+
+// Default to production backend (can be overridden with VITE_API_URL)
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://plasticworld.yaduraj.me/api/v1'
+const WS_URL = import.meta.env.VITE_WS_URL || 'wss://plasticworld.yaduraj.me'
+
+// If you want to use localhost backend, set VITE_API_URL=http://localhost:3000/api/v1 in .env file
 
 // Log API configuration (only in development)
 if (isDevelopment) {
