@@ -5,6 +5,7 @@ import './SignIn.css'
 
 const SignIn = () => {
   const [loading, setLoading] = useState(false)
+  const [loadingStep, setLoadingStep] = useState('')
   const [error, setError] = useState(null)
   const navigate = useNavigate()
 
@@ -12,14 +13,23 @@ const SignIn = () => {
     try {
       setLoading(true)
       setError(null)
+      setLoadingStep('Opening Google sign-in...')
       
-      await signInWithGoogle()
+      // Sign in with Firebase (this will show popup)
+      setLoadingStep('Signing in with Google...')
+      const result = await signInWithGoogle((step) => setLoadingStep(step))
+      
+      setLoadingStep('Redirecting...')
+      
+      // Small delay to show success message
+      await new Promise(resolve => setTimeout(resolve, 300))
       
       // Redirect to dashboard
       navigate('/dashboard')
     } catch (err) {
       setError(err.message || 'Sign in failed. Please try again.')
       setLoading(false)
+      setLoadingStep('')
     }
   }
 
@@ -48,7 +58,7 @@ const SignIn = () => {
             {loading ? (
               <span className="button-loading">
                 <span className="spinner"></span>
-                Signing in...
+                {loadingStep || 'Signing in...'}
               </span>
             ) : (
               <>
@@ -74,6 +84,14 @@ const SignIn = () => {
               </>
             )}
           </button>
+          
+          {loading && loadingStep && (
+            <div className="loading-progress">
+              <div className="progress-bar">
+                <div className="progress-fill"></div>
+              </div>
+            </div>
+          )}
 
           <div className="signin-footer">
             <p className="signin-footer-text">

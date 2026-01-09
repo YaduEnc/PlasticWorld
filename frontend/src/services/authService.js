@@ -4,23 +4,27 @@ import api from '../config/api'
 
 /**
  * Sign in with Google
+ * @param {Function} progressCallback - Optional callback for progress updates
  */
-export const signInWithGoogle = async () => {
+export const signInWithGoogle = async (progressCallback) => {
   try {
-    // Sign in with Firebase
+    // Step 1: Sign in with Firebase
+    if (progressCallback) progressCallback('Connecting to Google...')
     const result = await signInWithPopup(auth, googleProvider)
     const user = result.user
     
-    // Get ID token
+    // Step 2: Get ID token
+    if (progressCallback) progressCallback('Getting authentication token...')
     const idToken = await user.getIdToken()
     
-    // Get device info
+    // Step 3: Prepare device info
     const deviceInfo = {
-      deviceName: navigator.userAgent,
+      deviceName: navigator.userAgent.substring(0, 100), // Limit length
       deviceType: 'web',
     }
     
-    // Sign in to backend
+    // Step 4: Sign in to backend
+    if (progressCallback) progressCallback('Signing in to PlasticWorld...')
     const response = await api.post('/auth/google-signin', {
       idToken,
       deviceInfo,
@@ -29,7 +33,8 @@ export const signInWithGoogle = async () => {
     if (response.data.success) {
       const { accessToken, refreshToken, user: userData } = response.data.data
       
-      // Store tokens and user data
+      // Step 5: Store tokens
+      if (progressCallback) progressCallback('Saving your session...')
       localStorage.setItem('accessToken', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
       localStorage.setItem('user', JSON.stringify(userData))
