@@ -24,6 +24,7 @@ const corsOptions = {
     'http://localhost:8080',
     'http://localhost:8081',
     'http://localhost:8082',
+    'http://localhost:8083', // For messaging test page
     'http://localhost:5173',
   ],
   credentials: true,
@@ -111,11 +112,13 @@ const apiVersion = process.env.API_VERSION || 'v1';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import friendRoutes from './routes/friend.routes';
+import messageRoutes from './routes/message.routes';
 
 // Mount routes
 app.use(`/api/${apiVersion}/auth`, authRoutes);
 app.use(`/api/${apiVersion}/users`, userRoutes);
 app.use(`/api/${apiVersion}/friends`, friendRoutes);
+app.use(`/api/${apiVersion}/messages`, messageRoutes);
 
 // API root endpoint
 app.get(`/api/${apiVersion}`, (_req: Request, res: Response) => {
@@ -128,6 +131,7 @@ app.get(`/api/${apiVersion}`, (_req: Request, res: Response) => {
       auth: `/api/${apiVersion}/auth`,
       users: `/api/${apiVersion}/users`,
       friends: `/api/${apiVersion}/friends`,
+      messages: `/api/${apiVersion}/messages`,
     },
   });
 });

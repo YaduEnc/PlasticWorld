@@ -3,11 +3,13 @@ import dotenv from 'dotenv';
 // Load environment variables first
 dotenv.config();
 
+import { Server as HTTPServer } from 'http';
 import app from './app';
 import database from './config/database';
 import redisClient from './config/redis';
 import logger from './utils/logger';
 import { initializeFirebase } from './config/firebase';
+import { initializeSocket } from './config/socket';
 
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -79,7 +81,7 @@ const startServer = async () => {
 
     // Start HTTP server
     console.log(`🌐 Starting HTTP server on port ${PORT}...`);
-    const server = app.listen(PORT, () => {
+    const httpServer: HTTPServer = app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
       logger.info(`🚀 Server running on port ${PORT}`, {
         environment: NODE_ENV,
@@ -88,8 +90,13 @@ const startServer = async () => {
       });
     });
 
+    // Initialize Socket.io
+    console.log('🔌 Initializing Socket.io server...');
+    initializeSocket(httpServer);
+    console.log('✅ Socket.io server initialized');
+
     // Handle server errors
-    server.on('error', (error: NodeJS.ErrnoException) => {
+    httpServer.on('error', (error: NodeJS.ErrnoException) => {
       if (error.syscall !== 'listen') {
         throw error;
       }
@@ -132,7 +139,7 @@ const startServer = async () => {
       gracefulShutdown('unhandledRejection');
     });
 
-    return server;
+    return httpServer;
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     logger.error('Failed to start server', {

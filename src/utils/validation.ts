@@ -164,6 +164,49 @@ export function validateBody<T>(schema: z.ZodSchema<T>) {
 }
 
 /**
+ * Validation schemas for message endpoints
+ */
+
+// Send Message
+export const sendMessageSchema = z.object({
+  recipientId: z.string().uuid('Invalid recipient ID format'),
+  encryptedContent: z.string().min(1, 'Encrypted content is required'), // Base64 encoded
+  encryptedKey: z.string().min(1, 'Encrypted key is required'), // Base64 encoded
+  messageType: z.enum(['text', 'image', 'video', 'audio', 'file', 'system'], {
+    errorMap: () => ({ message: 'Message type must be text, image, video, audio, file, or system' }),
+  }),
+  mediaUrl: z.string().url('Media URL must be a valid URL').optional(),
+  mediaSizeBytes: z.number().int().positive('Media size must be positive').optional(),
+  replyToMessageId: z.string().uuid('Invalid reply-to message ID format').optional(),
+});
+
+// Edit Message
+export const editMessageSchema = z.object({
+  encryptedContent: z.string().min(1, 'Encrypted content is required').optional(), // Base64 encoded
+  encryptedKey: z.string().min(1, 'Encrypted key is required').optional(), // Base64 encoded
+});
+
+// Conversation Query Parameters
+export const conversationQuerySchema = z
+  .object({
+    limit: z.string().optional(),
+    offset: z.string().optional(),
+    beforeMessageId: z.string().uuid('Invalid message ID format').optional(),
+  })
+  .transform((data) => ({
+    limit: data.limit ? parseInt(data.limit, 10) : 50,
+    offset: data.offset ? parseInt(data.offset, 10) : 0,
+    beforeMessageId: data.beforeMessageId,
+  }))
+  .pipe(
+    z.object({
+      limit: z.number().int().min(1).max(100),
+      offset: z.number().int().min(0),
+      beforeMessageId: z.string().uuid().optional(),
+    })
+  );
+
+/**
  * Validate request query parameters against schema
  */
 export function validateQuery<T>(schema: z.ZodSchema<T>) {
