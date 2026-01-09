@@ -82,8 +82,15 @@ export const authenticate = async (
     } else {
       logger.error('Authentication middleware error', {
         error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
       });
-      next(new AppError('Authentication failed', 401, 'AUTH_FAILED'));
+      // Provide more specific error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('jwt') || errorMessage.includes('token')) {
+        next(new AppError(`Token validation failed: ${errorMessage}`, 401, 'AUTH_FAILED'));
+      } else {
+        next(new AppError(`Authentication failed: ${errorMessage}`, 401, 'AUTH_FAILED'));
+      }
     }
   }
 };

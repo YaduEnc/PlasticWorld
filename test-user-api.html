@@ -192,12 +192,17 @@
         <!-- Access Token Input -->
         <div class="section">
             <h2>1️⃣ Access Token</h2>
+            <div class="info-box" style="margin-bottom: 15px;">
+                <strong>📝 Important:</strong> You need the <strong>Access Token</strong> from the <code>/auth/google-signin</code> response, 
+                NOT the Firebase ID Token. The access token is a JWT that starts with <code>eyJ</code> and is much shorter than the Firebase token.
+            </div>
             <div class="input-group">
-                <label for="accessToken">Access Token (from /auth/google-signin):</label>
-                <textarea id="accessToken" placeholder="Paste your access token here..."></textarea>
+                <label for="accessToken">Access Token (from /auth/google-signin response):</label>
+                <textarea id="accessToken" placeholder="Paste your access token here (should start with 'eyJ' and be relatively short)..."></textarea>
             </div>
             <button onclick="loadTokenFromStorage()">Load Saved Token</button>
             <button onclick="saveTokenToStorage()">Save Token</button>
+            <button onclick="getTokenFromFirebasePage()" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">Get Token from Firebase Page</button>
         </div>
         
         <!-- Get Current User -->
@@ -342,6 +347,11 @@
             const token = getAccessToken();
             if (!token) return;
             
+            // Validate token format (JWT should start with eyJ)
+            if (!token.startsWith('eyJ')) {
+                alert('⚠️ Warning: This doesn\'t look like a valid JWT access token. Access tokens should start with "eyJ". Make sure you\'re using the "accessToken" from /auth/google-signin response, not the Firebase ID token.');
+            }
+            
             try {
                 const response = await fetch(`${API_BASE}/users/me`, {
                     method: 'GET',
@@ -353,6 +363,12 @@
                 
                 const data = await response.json();
                 showResponse('getCurrentUserResponse', data, !response.ok);
+                
+                if (!response.ok && data.error) {
+                    if (data.error.code === 'AUTH_FAILED' || data.error.code === 'TOKEN_EXPIRED') {
+                        alert('❌ Authentication failed. Your token may be expired or invalid. Please get a new access token from /auth/google-signin');
+                    }
+                }
             } catch (error) {
                 showResponse('getCurrentUserResponse', { error: error.message }, true);
             }
