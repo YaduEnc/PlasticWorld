@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Simple script to create PM2 ecosystem.config.js and start the backend
+
+echo "Creating PM2 ecosystem.config.js..."
+
+# Start the config file
+cat > ecosystem.config.js << 'EOF'
+module.exports = {
+  apps: [{
+    name: 'plasticworld-backend',
+    script: 'dist/server.js',
+    env_production: {
+EOF
+
+# Load .env.production and add each variable
+while IFS='=' read -r key value || [ -n "$key" ]; do
+  # Skip comments and empty lines
+  [[ "$key" =~ ^#.*$ ]] && continue
+  [[ -z "$key" ]] && continue
+  
+  # Remove leading/trailing whitespace
+  key=$(echo "$key" | xargs)
+  value=$(echo "$value" | xargs)
+  
+  # Skip if key is empty after trimming
+  [[ -z "$key" ]] && continue
+  
+  # Remove quotes if present
+  value=$(echo "$value" | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
+  
+  # Special handling for DB_HOST and REDIS_HOST
+  if [ "$key" = "DB_HOST" ]; then
+    echo "      DB_HOST: 'localhost'," >> ecosystem.config.js
+  elif [ "$key" = "REDIS_HOST" ]; then
+    echo "      REDIS_HOST: 'localhost'," >> ecosystem.config.js
+  else
+    # Escape single quotes and newlines in value
+    value=$(echo "$value" | sed "s/'/\\\'/g" | tr '\n' ' ')
+    echo "      $key: '$value'," >> ecosystem.config.js
+  fi
+done < .env.production
+
+# Close the config
+cat >> ecosystem.config.js << 'EOF'
+      NODE_ENV: 'production',
+    }
+  }]
+};
+EOF
+
+echo "✅ ecosystem.config.js created!"
+echo "Starting PM2..."
+
+pm2 delete plasticworld-backend 2>/dev/null || true
+pm2 start ecosystem.config.js --env production --update-env
+
+echo "✅ PM2 started!"
+pm2 status
