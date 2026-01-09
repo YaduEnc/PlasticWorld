@@ -738,11 +738,11 @@ stateDiagram-v2
     
     Connected --> ReceivingEvents: Listen for events
     
-    ReceivingEvents --> ReceivingEvents: message:received<br/>typing:start/stop<br/>user:online/offline<br/>status:update
+    ReceivingEvents --> ReceivingEvents: message:received, typing:start/stop, user:online/offline, status:update
     
     Connected --> SendingEvents: Emit events
     
-    SendingEvents --> SendingEvents: message:send<br/>typing:start/stop<br/>status:update<br/>message:read
+    SendingEvents --> SendingEvents: message:send, typing:start/stop, status:update, message:read
     
     ReceivingEvents --> Connected
     SendingEvents --> Connected
@@ -804,7 +804,7 @@ stateDiagram-v2
     
     Encrypted --> Sending: POST /messages API call
     
-    Sending --> Sent: Message stored in database<br/>status: "sent"
+    Sending --> Sent: Message stored in database, status: "sent"
     
     Sent --> Delivering: Recipient device receives<br/>(WebSocket or polling)
     
@@ -1074,8 +1074,9 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 **Yaduraj Singh**
 
+- Email: yadurajsingham@gmail.com
 - GitHub: [@yadurajsingh](https://github.com/yadurajsingh)
-- Project: [PlasticWorld Backend](https://github.com/yourusername/plasticworld-backend)
+- Project: [PlasticWorld Backend](https://github.com/YaduEnc/PlasticWorld)
 
 ## 📞 Support
 
