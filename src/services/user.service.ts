@@ -37,21 +37,70 @@ export interface UpdateUserData {
 
 class UserService {
   /**
+   * Generate a unique username from email or name
+   */
+  private async generateUniqueUsername(email: string, name: string): Promise<string> {
+    // Extract base username from email (before @) or name
+    let baseUsername = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    // If email-based username is too short or empty, use name
+    if (baseUsername.length < 3) {
+      baseUsername = name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
+    }
+    
+    // Ensure minimum length
+    if (baseUsername.length < 3) {
+      baseUsername = 'user' + Math.random().toString(36).substring(2, 8);
+    }
+    
+    // Ensure maximum length
+    if (baseUsername.length > 27) {
+      baseUsername = baseUsername.substring(0, 27);
+    }
+    
+    // Check if username is available
+    let username = baseUsername;
+    let counter = 1;
+    
+    while (!(await this.isUsernameAvailable(username))) {
+      const suffix = counter.toString();
+      const maxLength = 30 - suffix.length;
+      username = baseUsername.substring(0, maxLength) + suffix;
+      counter++;
+      
+      // Safety check to prevent infinite loop
+      if (counter > 10000) {
+        username = 'user' + Date.now().toString().substring(7);
+        break;
+      }
+    }
+    
+    return username;
+  }
+
+  /**
    * Create a new user
    */
   async createUser(data: CreateUserData): Promise<User> {
     try {
+      // Generate a unique username
+      const username = await this.generateUniqueUsername(data.email, data.name);
+      
+      // Default age to 18 (user can update later via complete-profile)
+      // Database requires age >= 13, so we use 18 as a safe default
+      const defaultAge = 18;
+      
       const result = await database.query<User>(
         `INSERT INTO users (
-          firebase_uid, email, name, profile_picture_url, status
-        ) VALUES ($1, $2, $3, $4, $5)
+          firebase_uid, username, email, name, age, profile_picture_url, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING 
           id, firebase_uid as "firebaseUid", username, email,
           phone_number as "phoneNumber", name, age,
           profile_picture_url as "profilePictureUrl", bio,
           status, last_seen as "lastSeen", is_active as "isActive",
           created_at as "createdAt", updated_at as "updatedAt"`,
-        [data.firebaseUid, data.email, data.name, data.profilePictureUrl || null, 'offline']
+        [data.firebaseUid, username, data.email, data.name, defaultAge, data.profilePictureUrl || null, 'offline']
       );
 
       const user = result.rows[0];
