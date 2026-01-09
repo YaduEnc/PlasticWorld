@@ -19,15 +19,25 @@ class Database {
         min: parseInt(process.env.DB_POOL_MIN || '2', 10),
         max: parseInt(process.env.DB_POOL_MAX || '10', 10),
         idleTimeoutMillis: parseInt(process.env.DB_TIMEOUT || '30000', 10),
-        connectionTimeoutMillis: 5000,
+        connectionTimeoutMillis: 10000, // Increased to 10 seconds
       };
+
+      logger.info('Attempting PostgreSQL connection', {
+        host: config.host,
+        port: config.port,
+        database: config.database,
+        user: config.user,
+      });
 
       this.pool = new Pool(config);
 
       // Test connection
+      logger.info('Testing PostgreSQL connection...');
       const client = await this.pool.connect();
+      logger.info('Connection acquired, testing query...');
       const result = await client.query('SELECT NOW()');
       client.release();
+      logger.info('Connection test successful');
 
       logger.info('PostgreSQL connected successfully', {
         host: config.host,
