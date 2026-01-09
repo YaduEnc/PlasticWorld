@@ -79,6 +79,9 @@ router.post(
               await userService.reactivateUser(existingUser.id);
             }
             user = await userService.getUserById(existingUser.id);
+            if (!user) {
+              throw new AppError('Failed to retrieve reactivated user', 500, 'INTERNAL_ERROR');
+            }
           } else {
             throw error;
           }
@@ -86,6 +89,11 @@ router.post(
           throw error;
         }
       }
+    }
+
+    // Ensure user is not null at this point
+    if (!user) {
+      throw new AppError('Failed to get or create user', 500, 'USER_CREATION_FAILED');
     }
 
     // Get or create device
