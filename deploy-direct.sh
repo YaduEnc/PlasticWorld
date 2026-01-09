@@ -37,8 +37,8 @@ if [ ! -f .env.production ]; then
     exit 1
 fi
 
-# Load environment variables
-export $(grep -v '^#' .env.production | xargs)
+# Note: Environment variables will be loaded by PM2 from .env.production
+# We'll set DB_HOST and REDIS_HOST explicitly for direct connection
 
 # Update DB_HOST and REDIS_HOST to use Docker container IPs or localhost
 # Since we're running outside Docker, we need to connect to localhost:5432 and localhost:6379
