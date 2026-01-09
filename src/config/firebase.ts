@@ -69,8 +69,7 @@ async function verifyIdToken(idToken: string): Promise<admin.auth.DecodedIdToken
   }
 }
 
-// Initialize on module load
-initializeFirebase();
+// Don't initialize on module load - let server.ts call it after dotenv loads
 
 export { getAuth, verifyIdToken, initializeFirebase };
 export default admin;

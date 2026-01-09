@@ -1,7 +1,13 @@
+import dotenv from 'dotenv';
+
+// Load environment variables first
+dotenv.config();
+
 import app from './app';
 import database from './config/database';
 import redisClient from './config/redis';
 import logger from './utils/logger';
+import { initializeFirebase } from './config/firebase';
 
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -51,6 +57,10 @@ const gracefulShutdown = async (signal: string) => {
  */
 const startServer = async () => {
   try {
+    // Initialize Firebase first (after dotenv has loaded)
+    logger.info('Initializing Firebase Admin SDK...');
+    initializeFirebase();
+
     // Connect to database
     logger.info('Connecting to PostgreSQL...');
     await database.connect();
