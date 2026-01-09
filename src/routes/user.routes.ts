@@ -170,6 +170,46 @@ router.get(
 );
 
 /**
+ * GET /api/v1/users/:userId
+ * Get public profile of any user by ID
+ * NOTE: This route must come AFTER /search to avoid route conflicts
+ */
+router.get(
+  '/:userId',
+  authenticate,
+  asyncHandler(async (req: Request, res: Response) => {
+    const { userId } = req.params;
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      throw new AppError('Invalid user ID format', 400, 'INVALID_USER_ID');
+    }
+
+    const user = await userService.getPublicUserProfile(userId);
+
+    if (!user) {
+      throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          profilePictureUrl: user.profilePictureUrl,
+          bio: user.bio,
+          status: user.status,
+          lastSeen: user.lastSeen,
+        },
+      },
+    });
+  })
+);
+
+/**
  * PUT /api/v1/users/me/status
  * Update user's online status
  */
