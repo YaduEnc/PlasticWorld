@@ -87,15 +87,15 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <script>
-        // ⚠️ REPLACE WITH YOUR FIREBASE CONFIG
-        // Get this from Firebase Console > Project Settings > General > Your apps
+        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
+            apiKey: "AIzaSyCEgFOzM8VaKURBTWAerFwgSfmMoDOYISQ",
             authDomain: "platicworld-f671a.firebaseapp.com",
             projectId: "platicworld-f671a",
-            storageBucket: "platicworld-f671a.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            storageBucket: "platicworld-f671a.firebasestorage.app",
+            messagingSenderId: "869365225242",
+            appId: "1:869365225242:web:57a24b1f69c39248193ea3",
+            measurementId: "G-HLZTGK7Z22"
         };
 
         // Initialize Firebase
@@ -168,6 +168,8 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    mode: 'cors',
+                    credentials: 'include',
                     body: JSON.stringify({
                         idToken: token,
                         deviceInfo: {
