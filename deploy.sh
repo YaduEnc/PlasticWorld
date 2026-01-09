@@ -27,14 +27,15 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 echo -e "${YELLOW}📦 Building Docker images...${NC}"
-# Export env vars for build (Docker Compose needs them during build)
-export $(grep -v '^#' .env.production | xargs)
+# Build doesn't need DB/REDIS passwords (only runtime does)
+# Warnings about missing passwords are harmless during build
 docker compose -f docker-compose.prod.yml build --no-cache
 
 echo -e "${YELLOW}🛑 Stopping existing containers...${NC}"
 docker compose -f docker-compose.prod.yml down
 
 echo -e "${YELLOW}🗄️  Starting database services...${NC}"
+# env_file in docker-compose.prod.yml will load .env.production automatically
 docker compose -f docker-compose.prod.yml up -d postgres redis
 
 echo -e "${YELLOW}⏳ Waiting for databases to be ready...${NC}"
