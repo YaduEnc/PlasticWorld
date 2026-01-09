@@ -27,11 +27,11 @@ export interface CreateUserData {
 
 export interface UpdateUserData {
   username?: string;
-  phoneNumber?: string;
+  phoneNumber?: string | null;
   name?: string;
   age?: number;
-  profilePictureUrl?: string;
-  bio?: string;
+  profilePictureUrl?: string | null;
+  bio?: string | null;
   status?: 'online' | 'offline' | 'away';
 }
 
