@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Firebase ID Token</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #357ae8;
+        }
+        #token {
+            margin-top: 20px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .success {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Get Firebase ID Token</h1>
+        
+        <div class="info">
+            <strong>Instructions:</strong>
+            <ol>
+                <li>Click "Sign In with Google" button below</li>
+                <li>Sign in with your Google account</li>
+                <li>Copy the ID Token that appears below</li>
+                <li>Use it to test the authentication API</li>
+            </ol>
+        </div>
+
+        <button onclick="signIn()">Sign In with Google</button>
+        <button onclick="signOut()">Sign Out</button>
+
+        <div id="token"></div>
+        <div id="userInfo"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <script>
+        // ⚠️ REPLACE WITH YOUR FIREBASE CONFIG
+        // Get this from Firebase Console > Project Settings > General > Your apps
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "platicworld-f671a.firebaseapp.com",
+            projectId: "platicworld-f671a",
+            storageBucket: "platicworld-f671a.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        async function signIn() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                
+                // Get ID Token
+                const idToken = await user.getIdToken();
+                
+                // Display token
+                document.getElementById('token').innerHTML = `
+                    <div class="success">
+                        <h3>✅ Success! Your Firebase ID Token:</h3>
+                        <textarea id="tokenText" readonly>${idToken}</textarea>
+                        <button onclick="copyToken()">Copy Token</button>
+                        <button onclick="testAPI()">Test API with this Token</button>
+                    </div>
+                `;
+
+                // Display user info
+                document.getElementById('userInfo').innerHTML = `
+                    <div class="info">
+                        <h3>User Information:</h3>
+                        <p><strong>Name:</strong> ${user.displayName}</p>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>UID:</strong> ${user.uid}</p>
+                        <p><strong>Photo:</strong> <img src="${user.photoURL}" width="50" height="50" style="border-radius: 50%;"></p>
+                    </div>
+                `;
+
+                console.log('Firebase ID Token:', idToken);
+                console.log('User:', user);
+            } catch (error) {
+                console.error('Sign-in error:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function signOut() {
+            try {
+                await auth.signOut();
+                document.getElementById('token').innerHTML = '';
+                document.getElementById('userInfo').innerHTML = '';
+                alert('Signed out successfully');
+            } catch (error) {
+                console.error('Sign-out error:', error);
+            }
+        }
+
+        function copyToken() {
+            const tokenText = document.getElementById('tokenText');
+            tokenText.select();
+            document.execCommand('copy');
+            alert('Token copied to clipboard!');
+        }
+
+        async function testAPI() {
+            const token = document.getElementById('tokenText').value;
+            const apiUrl = 'http://localhost:3000/api/v1/auth/google-signin';
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        idToken: token,
+                        deviceInfo: {
+                            deviceName: 'Test Browser',
+                            deviceType: 'web'
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ API Test Successful!\n\nCheck console for full response.');
+                    console.log('API Response:', data);
+                    
+                    // Display response
+                    document.getElementById('token').innerHTML += `
+                        <div class="success" style="margin-top: 20px;">
+                            <h3>API Response:</h3>
+                            <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+                            <p><strong>Access Token:</strong> ${data.data.accessToken.substring(0, 50)}...</p>
+                            <p><strong>User ID:</strong> ${data.data.user.id}</p>
+                        </div>
+                    `;
+                } else {
+                    alert('❌ API Test Failed:\n' + JSON.stringify(data, null, 2));
+                    console.error('API Error:', data);
+                }
+            } catch (error) {
+                alert('❌ Error calling API:\n' + error.message);
+                console.error('API Error:', error);
+            }
+        }
+
+        // Auto-refresh token every 50 minutes (tokens expire after 1 hour)
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                setInterval(async () => {
+                    try {
+                        const newToken = await user.getIdToken(true); // Force refresh
+                        const tokenText = document.getElementById('tokenText');
+                        if (tokenText) {
+                            tokenText.value = newToken;
+                        }
+                        console.log('Token refreshed');
+                    } catch (error) {
+                        console.error('Token refresh error:', error);
+                    }
+                }, 50 * 60 * 1000); // 50 minutes
+            }
+        });
+    </script>
+</body>
+</html>
