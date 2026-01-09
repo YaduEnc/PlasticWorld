@@ -16,24 +16,31 @@ export interface TokenPair {
 }
 
 class JWTService {
-  private readonly secret: string;
+  private secret: string | null = null;
   private readonly accessExpiresIn: string;
   private readonly refreshExpiresIn: string;
   private readonly issuer: string;
 
   constructor() {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error('JWT_SECRET is not defined in environment variables');
-    }
-    this.secret = secret;
+    // Don't load secret in constructor - load lazily when needed
+    // This allows dotenv to load first
     this.accessExpiresIn = process.env.JWT_ACCESS_EXPIRES_IN || '15m';
     this.refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
     this.issuer = process.env.JWT_ISSUER || 'plasticworld-api';
+  }
 
-    if (this.secret.length < 32) {
-      logger.warn('JWT_SECRET is less than 32 characters. Consider using a stronger secret.');
+  private getSecret(): string {
+    if (!this.secret) {
+      const secret = process.env.JWT_SECRET;
+      if (!secret) {
+        throw new Error('JWT_SECRET is not defined in environment variables');
+      }
+      this.secret = secret;
+      if (this.secret.length < 32) {
+        logger.warn('JWT_SECRET is less than 32 characters. Consider using a stronger secret.');
+      }
     }
+    return this.secret;
   }
 
   /**
@@ -52,12 +59,13 @@ class JWTService {
       type: 'refresh',
     };
 
-    const accessToken = jwt.sign(accessPayload, this.secret, {
+    const secret = this.getSecret();
+    const accessToken = jwt.sign(accessPayload, secret, {
       expiresIn: this.accessExpiresIn,
       issuer: this.issuer,
     } as jwt.SignOptions);
 
-    const refreshToken = jwt.sign(refreshPayload, this.secret, {
+    const refreshToken = jwt.sign(refreshPayload, secret, {
       expiresIn: this.refreshExpiresIn,
       issuer: this.issuer,
     } as jwt.SignOptions);
@@ -79,7 +87,8 @@ class JWTService {
    */
   verifyAccessToken(token: string): TokenPayload {
     try {
-      const decoded = jwt.verify(token, this.secret, {
+      const secret = this.getSecret();
+      const decoded = jwt.verify(token, secret, {
         issuer: this.issuer,
       }) as TokenPayload;
 
@@ -104,7 +113,8 @@ class JWTService {
    */
   verifyRefreshToken(token: string): TokenPayload {
     try {
-      const decoded = jwt.verify(token, this.secret, {
+      const secret = this.getSecret();
+      const decoded = jwt.verify(token, secret, {
         issuer: this.issuer,
       }) as TokenPayload;
 

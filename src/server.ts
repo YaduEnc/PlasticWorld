@@ -57,20 +57,30 @@ const gracefulShutdown = async (signal: string) => {
  */
 const startServer = async () => {
   try {
+    console.log('🚀 Starting server initialization...');
+    
     // Initialize Firebase first (after dotenv has loaded)
+    console.log('📦 Initializing Firebase Admin SDK...');
     logger.info('Initializing Firebase Admin SDK...');
     initializeFirebase();
+    console.log('✅ Firebase initialized');
 
     // Connect to database
+    console.log('🗄️  Connecting to PostgreSQL...');
     logger.info('Connecting to PostgreSQL...');
     await database.connect();
+    console.log('✅ PostgreSQL connected');
 
     // Connect to Redis
+    console.log('💾 Connecting to Redis...');
     logger.info('Connecting to Redis...');
     await redisClient.connect();
+    console.log('✅ Redis connected');
 
     // Start HTTP server
+    console.log(`🌐 Starting HTTP server on port ${PORT}...`);
     const server = app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
       logger.info(`🚀 Server running on port ${PORT}`, {
         environment: NODE_ENV,
         port: PORT,
@@ -124,6 +134,7 @@ const startServer = async () => {
 
     return server;
   } catch (error) {
+    console.error('❌ Failed to start server:', error);
     logger.error('Failed to start server', {
       error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,

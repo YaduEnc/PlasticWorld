@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Get Firebase Token</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <h1>Get Firebase ID Token</h1>
+    <button onclick="signIn()">Sign In with Google</button>
+    <div id="token"></div>
+    <script>
+        // Replace with your Firebase config
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "platicworld-f671a.firebaseapp.com",
+            projectId: "platicworld-f671a"
+        };
+        firebase.initializeApp(firebaseConfig);
+        async function signIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            const result = await firebase.auth().signInWithPopup(provider);
+            const idToken = await result.user.getIdToken();
+            document.getElementById('token').innerHTML = 
+                '<textarea style="width:100%;height:200px">' + idToken + '</textarea>';
+            console.log('ID Token:', idToken);
+        }
+    </script>
+</body>
+</html>

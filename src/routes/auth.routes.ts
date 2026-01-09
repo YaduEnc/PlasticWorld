@@ -13,8 +13,9 @@ import {
   completeProfileSchema,
   refreshTokenSchema,
 } from '../utils/validation';
-import database from '../config/database';
 import logger from '../utils/logger';
+
+// Note: database is imported dynamically in refresh route to avoid circular dependency
 
 const router = Router();
 
@@ -210,6 +211,8 @@ router.post(
     const newAccessTokenHash = jwtService.hashToken(tokenPair.accessToken);
     const newRefreshTokenHash = jwtService.hashToken(tokenPair.refreshToken);
 
+    // Import database here to avoid circular dependency
+    const database = (await import('../config/database')).default;
     await database.query(
       `UPDATE sessions 
       SET access_token_hash = $1, refresh_token_hash = $2,
