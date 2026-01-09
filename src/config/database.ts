@@ -31,9 +31,16 @@ class Database {
 
       this.pool = new Pool(config);
 
-      // Test connection
+      // Test connection with manual timeout
       logger.info('Testing PostgreSQL connection...');
-      const client = await this.pool.connect();
+      const connectPromise = this.pool.connect();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('PostgreSQL connection timeout after 15 seconds'));
+        }, 15000);
+      });
+      
+      const client = await Promise.race([connectPromise, timeoutPromise]) as any;
       logger.info('Connection acquired, testing query...');
       const result = await client.query('SELECT NOW()');
       client.release();
