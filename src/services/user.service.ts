@@ -122,10 +122,14 @@ class UserService {
   }
 
   /**
-   * Get user by Firebase UID
+   * Get user by Firebase UID (including inactive users)
    */
-  async getUserByFirebaseUid(firebaseUid: string): Promise<User | null> {
+  async getUserByFirebaseUid(firebaseUid: string, includeInactive: boolean = false): Promise<User | null> {
     try {
+      const whereClause = includeInactive 
+        ? 'firebase_uid = $1' 
+        : 'firebase_uid = $1 AND is_active = true';
+      
       const result = await database.query<User>(
         `SELECT 
           id, firebase_uid as "firebaseUid", username, email,
@@ -134,7 +138,7 @@ class UserService {
           status, last_seen as "lastSeen", is_active as "isActive",
           created_at as "createdAt", updated_at as "updatedAt"
         FROM users
-        WHERE firebase_uid = $1 AND is_active = true
+        WHERE ${whereClause}
         LIMIT 1`,
         [firebaseUid]
       );
@@ -144,6 +148,72 @@ class UserService {
       logger.error('Failed to get user by Firebase UID', {
         error: error instanceof Error ? error.message : 'Unknown error',
         firebaseUid,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get user by email (including inactive users)
+   */
+  async getUserByEmail(email: string, includeInactive: boolean = false): Promise<User | null> {
+    try {
+      const whereClause = includeInactive 
+        ? 'email = $1' 
+        : 'email = $1 AND is_active = true';
+      
+      const result = await database.query<User>(
+        `SELECT 
+          id, firebase_uid as "firebaseUid", username, email,
+          phone_number as "phoneNumber", name, age,
+          profile_picture_url as "profilePictureUrl", bio,
+          status, last_seen as "lastSeen", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM users
+        WHERE ${whereClause}
+        LIMIT 1`,
+        [email]
+      );
+
+      return result.rows[0] || null;
+    } catch (error) {
+      logger.error('Failed to get user by email', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        email,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Reactivate a soft-deleted user
+   */
+  async reactivateUser(userId: string): Promise<User> {
+    try {
+      const result = await database.query<User>(
+        `UPDATE users 
+        SET is_active = true, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING 
+          id, firebase_uid as "firebaseUid", username, email,
+          phone_number as "phoneNumber", name, age,
+          profile_picture_url as "profilePictureUrl", bio,
+          status, last_seen as "lastSeen", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"`,
+        [userId]
+      );
+
+      if (result.rows.length === 0) {
+        throw new Error('User not found');
+      }
+
+      logger.info('User reactivated', { userId });
+
+      return result.rows[0];
+    } catch (error) {
+      logger.error('Failed to reactivate user', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId,
       });
       throw error;
     }

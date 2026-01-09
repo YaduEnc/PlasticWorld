@@ -36,17 +36,56 @@ router.post(
     const name = decodedToken.name || 'User';
     const picture = decodedToken.picture;
 
-    // Check if user exists
-    let user = await userService.getUserByFirebaseUid(firebaseUid);
+    // Check if user exists (including inactive)
+    let user = await userService.getUserByFirebaseUid(firebaseUid, true);
+
+    // If user doesn't exist, check by email (in case Firebase UID changed)
+    if (!user && email) {
+      user = await userService.getUserByEmail(email, true);
+    }
+
+    // If user exists but is inactive, reactivate them
+    if (user && !user.isActive) {
+      user = await userService.reactivateUser(user.id);
+      logger.info('User reactivated on sign-in', {
+        userId: user.id,
+        firebaseUid: user.firebaseUid,
+      });
+    }
 
     // Create user if doesn't exist
     if (!user) {
-      user = await userService.createUser({
-        firebaseUid,
-        email: email || '',
-        name,
-        profilePictureUrl: picture,
-      });
+      try {
+        user = await userService.createUser({
+          firebaseUid,
+          email: email || '',
+          name,
+          profilePictureUrl: picture,
+        });
+      } catch (error) {
+        // If creation fails due to duplicate email, try to find and reactivate
+        if (error instanceof Error && error.message.includes('duplicate key') && email) {
+          const existingUser = await userService.getUserByEmail(email, true);
+          if (existingUser) {
+            // Update Firebase UID if it changed and reactivate
+            const database = (await import('../config/database')).default;
+            if (existingUser.firebaseUid !== firebaseUid) {
+              // Update firebase_uid directly
+              await database.query(
+                'UPDATE users SET firebase_uid = $1, is_active = true WHERE id = $2',
+                [firebaseUid, existingUser.id]
+              );
+            } else {
+              await userService.reactivateUser(existingUser.id);
+            }
+            user = await userService.getUserById(existingUser.id);
+          } else {
+            throw error;
+          }
+        } else {
+          throw error;
+        }
+      }
     }
 
     // Get or create device
