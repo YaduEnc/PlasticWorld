@@ -43,6 +43,17 @@ export const deviceInfoSchema = z.object({
 
 // Update Profile
 export const updateProfileSchema = z.object({
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be at most 30 characters')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
+    .optional(),
+  phoneNumber: z
+    .string()
+    .regex(/^\+[1-9]\d{1,14}$/, 'Phone number must be in E.164 format (e.g., +1234567890)')
+    .optional()
+    .or(z.literal('').transform(() => undefined)), // Allow empty string to clear
   name: z
     .string()
     .min(1, 'Name must be at least 1 character')

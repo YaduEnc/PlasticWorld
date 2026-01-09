@@ -64,7 +64,7 @@ router.put(
   validateBody(updateProfileSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.id;
-    const { name, bio, profilePictureUrl } = req.body;
+    const { username, phoneNumber, name, bio, profilePictureUrl } = req.body;
 
     // Check if user exists
     const existingUser = await userService.getUserById(userId);
@@ -72,13 +72,39 @@ router.put(
       throw new AppError('User not found', 404, 'USER_NOT_FOUND');
     }
 
+    // Check username availability if provided and different from current
+    if (username !== undefined && username !== existingUser.username) {
+      const isUsernameAvailable = await userService.isUsernameAvailable(username);
+      if (!isUsernameAvailable) {
+        throw new AppError('Username is already taken', 409, 'USERNAME_TAKEN');
+      }
+    }
+
+    // Check phone availability if provided and different from current
+    if (phoneNumber !== undefined && phoneNumber !== existingUser.phoneNumber) {
+      if (phoneNumber) {
+        const isPhoneAvailable = await userService.isPhoneAvailable(phoneNumber);
+        if (!isPhoneAvailable) {
+          throw new AppError('Phone number is already registered', 409, 'PHONE_TAKEN');
+        }
+      }
+    }
+
     // Build update data (only include provided fields)
     const updateData: {
+      username?: string;
+      phoneNumber?: string | null;
       name?: string;
       bio?: string;
-      profilePictureUrl?: string;
+      profilePictureUrl?: string | null;
     } = {};
 
+    if (username !== undefined) {
+      updateData.username = username;
+    }
+    if (phoneNumber !== undefined) {
+      updateData.phoneNumber = phoneNumber || null; // Allow empty string to clear
+    }
     if (name !== undefined) {
       updateData.name = name;
     }
