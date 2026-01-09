@@ -383,8 +383,11 @@ class UserService {
         queryParams.push(searchPattern);
         paramIndex++;
       } else {
-        // Search all fields
-        searchCondition = `(LOWER(username) LIKE $${paramIndex} OR LOWER(email) LIKE $${paramIndex} OR phone_number LIKE $${paramIndex})`;
+        // Search all fields - use different parameter indices for each field
+        const param1 = paramIndex;
+        const param2 = paramIndex + 1;
+        const param3 = paramIndex + 2;
+        searchCondition = `(LOWER(username) LIKE $${param1} OR LOWER(email) LIKE $${param2} OR phone_number LIKE $${param3})`;
         queryParams.push(searchPattern, searchPattern, searchPattern);
         paramIndex += 3;
       }
