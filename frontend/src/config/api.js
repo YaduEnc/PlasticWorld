@@ -1,13 +1,23 @@
 import axios from 'axios'
 
-// API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://plasticworld.yaduraj.me/api/v1'
-const WS_URL = import.meta.env.VITE_WS_URL || 'wss://plasticworld.yaduraj.me'
+// API Base URL - Use localhost for development, production URL otherwise
+const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (isDevelopment ? 'http://localhost:3000/api/v1' : 'https://plasticworld.yaduraj.me/api/v1')
+const WS_URL = import.meta.env.VITE_WS_URL || 
+  (isDevelopment ? 'ws://localhost:3000' : 'wss://plasticworld.yaduraj.me')
+
+console.log('API Configuration:', {
+  isDevelopment,
+  API_BASE_URL,
+  WS_URL,
+  env: import.meta.env.MODE
+})
 
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000, // 10 seconds timeout
+  timeout: isDevelopment ? 5000 : 15000, // Shorter timeout for dev, longer for prod
   headers: {
     'Content-Type': 'application/json',
   },

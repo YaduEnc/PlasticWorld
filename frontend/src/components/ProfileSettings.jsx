@@ -29,7 +29,9 @@ const ProfileSettings = () => {
       
       // Try to load from API first
       try {
+        console.log('Fetching user profile from API...')
         const userData = await getUserProfile()
+        console.log('User profile fetched successfully:', userData)
         setUser(userData)
         setFormData({
           name: userData.name || '',
@@ -41,8 +43,17 @@ const ProfileSettings = () => {
       } catch (apiError) {
         // If API fails, try to use local storage user
         console.warn('API call failed, using local user data:', apiError)
+        
+        // Check if it's a timeout or network error
+        if (apiError.code === 'ECONNABORTED' || apiError.message?.includes('timeout')) {
+          console.warn('Request timed out - backend may not be running or accessible')
+        } else if (apiError.code === 'ERR_NETWORK') {
+          console.warn('Network error - check backend connection')
+        }
+        
         const localUser = getLocalUser()
         if (localUser) {
+          console.log('Using cached user data from localStorage')
           setUser(localUser)
           setFormData({
             name: localUser.name || '',
@@ -51,6 +62,8 @@ const ProfileSettings = () => {
             phoneNumber: localUser.phoneNumber || '',
             profilePictureUrl: localUser.profilePictureUrl || '',
           })
+          // Show a warning but don't set error since we have fallback data
+          setError('Using cached data - backend connection failed. Some features may not work.')
         } else {
           throw apiError
         }
