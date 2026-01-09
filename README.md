@@ -726,15 +726,15 @@ sequenceDiagram
 stateDiagram-v2
     [*] --> Disconnected
     
-    Disconnected --> Connecting: Client connects<br/>with access token
+    Disconnected --> Connecting: Client connects with access token
     
-    Connecting --> Authenticating: Socket.io connection<br/>established
+    Connecting --> Authenticating: Socket.io connection established
     
-    Authenticating --> Authenticated: Token validated<br/>User & device verified
+    Authenticating --> Authenticated: Token validated, User & device verified
     
-    Authenticating --> Disconnected: Authentication failed<br/>(invalid token)
+    Authenticating --> Disconnected: Authentication failed (invalid token)
     
-    Authenticated --> Connected: Join user room<br/>Set online status
+    Authenticated --> Connected: Join user room, Set online status
     
     Connected --> ReceivingEvents: Listen for events
     
@@ -800,27 +800,27 @@ stateDiagram-v2
     
     Draft --> Encrypting: User sends message
     
-    Encrypting --> Encrypted: Signal Protocol encryption<br/>(client-side)
+    Encrypting --> Encrypted: Signal Protocol encryption (client-side)
     
     Encrypted --> Sending: POST /messages API call
     
     Sending --> Sent: Message stored in database, status: "sent"
     
-    Sent --> Delivering: Recipient device receives<br/>(WebSocket or polling)
+    Sent --> Delivering: Recipient device receives (WebSocket or polling)
     
-    Delivering --> Delivered: POST /messages/:id/delivered<br/>status: "delivered"
+    Delivering --> Delivered: POST /messages/:id/delivered, status: "delivered"
     
     Delivered --> Reading: Recipient opens message
     
-    Reading --> Read: POST /messages/:id/read<br/>status: "read"
+    Reading --> Read: POST /messages/:id/read, status: "read"
     
     Read --> [*]: Message lifecycle complete
     
-    Sent --> Editing: User edits message<br/>(within 15 minutes)
+    Sent --> Editing: User edits message (within 15 minutes)
     Editing --> Sent: PUT /messages/:id
     
     Sent --> Deleting: User deletes message
-    Deleting --> Deleted: DELETE /messages/:id<br/>soft delete (deleted_at)
+    Deleting --> Deleted: DELETE /messages/:id, soft delete (deleted_at)
     Deleted --> [*]
     
     note right of Encrypting
