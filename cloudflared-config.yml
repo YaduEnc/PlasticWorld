@@ -1,5 +1,5 @@
-tunnel: YOUR_TUNNEL_ID
-credentials-file: /home/yadurajdoc/.cloudflared/YOUR_TUNNEL_ID.json
+tunnel: 66913219-c502-43ee-9342-56985c731a87
+credentials-file: /home/yadurajdoc/.cloudflared/66913219-c502-43ee-9342-56985c731a87.json
 
 ingress:
   # Route API subdomain to backend
