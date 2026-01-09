@@ -45,6 +45,17 @@ export const signInWithGoogle = async (progressCallback) => {
     throw new Error('Sign in failed')
   } catch (error) {
     console.error('Sign in error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: {
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        method: error.config?.method
+      }
+    })
     
     // Provide better error messages
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
@@ -56,11 +67,38 @@ export const signInWithGoogle = async (progressCallback) => {
       }
     }
     
-    if (error.response?.data?.error) {
-      throw new Error(error.response.data.error.message || 'Sign in failed')
+    // Handle CORS errors
+    if (error.message?.includes('CORS') || error.code === 'ERR_CORS') {
+      throw new Error('CORS error: Backend may not be configured to allow requests from this origin.')
     }
     
-    throw error
+    // Handle timeout
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      throw new Error('Request timed out. The backend server may be slow or unavailable.')
+    }
+    
+    // Handle specific HTTP errors
+    if (error.response) {
+      const status = error.response.status
+      const errorData = error.response.data?.error
+      
+      if (status === 401) {
+        throw new Error('Authentication failed. Please try signing in again.')
+      } else if (status === 403) {
+        throw new Error('Access denied. Please check your permissions.')
+      } else if (status === 404) {
+        throw new Error('Backend endpoint not found. Please check the API URL.')
+      } else if (status >= 500) {
+        throw new Error('Backend server error. Please try again later.')
+      } else if (errorData?.message) {
+        throw new Error(errorData.message)
+      } else {
+        throw new Error(`Sign in failed: ${error.response.statusText || 'Unknown error'}`)
+      }
+    }
+    
+    // Generic error fallback
+    throw new Error(error.message || 'Sign in failed. Please try again.')
   }
 }
 
