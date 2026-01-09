@@ -40,6 +40,16 @@ export const signInWithGoogle = async () => {
     throw new Error('Sign in failed')
   } catch (error) {
     console.error('Sign in error:', error)
+    
+    // Provide better error messages
+    if (error.code === 'ERR_NETWORK') {
+      throw new Error('Network error. Please check if the backend is running.')
+    }
+    
+    if (error.response?.data?.error) {
+      throw new Error(error.response.data.error.message || 'Sign in failed')
+    }
+    
     throw error
   }
 }

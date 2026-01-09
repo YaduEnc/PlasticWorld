@@ -14,8 +14,11 @@ const app: Application = express();
 // Trust proxy (for rate limiting behind reverse proxy)
 app.set('trust proxy', 1);
 
-// Security middleware
-app.use(helmet());
+// Security middleware - Configure Helmet to allow Firebase popups
+app.use(helmet({
+  crossOriginOpenerPolicy: { policy: 'unsafe-none' }, // Allow Firebase popup windows
+  crossOriginEmbedderPolicy: false, // Allow embedding
+}));
 
 // CORS configuration
 const getCorsOrigins = () => {
