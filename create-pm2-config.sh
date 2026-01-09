@@ -16,12 +16,12 @@ EOF
 # Load .env.production and add each variable
 while IFS='=' read -r key value || [ -n "$key" ]; do
   # Skip comments and empty lines
-  [[ "$key" =~ ^#.*$ ]] && continue
+  [[ "$key" =~ ^[[:space:]]*#.*$ ]] && continue
   [[ -z "$key" ]] && continue
   
-  # Remove leading/trailing whitespace
-  key=$(echo "$key" | xargs)
-  value=$(echo "$value" | xargs)
+  # Remove ALL leading/trailing whitespace from key and value
+  key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   
   # Skip if key is empty after trimming
   [[ -z "$key" ]] && continue
