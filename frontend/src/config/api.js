@@ -7,6 +7,7 @@ const WS_URL = import.meta.env.VITE_WS_URL || 'wss://plasticworld.yaduraj.me'
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',
   },

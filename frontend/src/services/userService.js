@@ -5,6 +5,15 @@ import api from '../config/api'
  */
 export const getUserProfile = async () => {
   const response = await api.get('/users/me')
+  
+  if (!response || !response.data) {
+    throw new Error('Invalid response from server')
+  }
+  
+  if (!response.data.success || !response.data.data || !response.data.data.user) {
+    throw new Error('Invalid response structure')
+  }
+  
   return response.data.data.user
 }
 

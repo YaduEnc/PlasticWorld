@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getUserProfile, updateProfile } from '../services/userService'
+import { getCurrentUser as getLocalUser } from '../services/authService'
 import './ProfileSettings.css'
 
 const ProfileSettings = () => {
@@ -24,17 +25,40 @@ const ProfileSettings = () => {
   const loadUser = async () => {
     try {
       setLoading(true)
-      const userData = await getUserProfile()
-      setUser(userData)
-      setFormData({
-        name: userData.name || '',
-        username: userData.username || '',
-        bio: userData.bio || '',
-        phoneNumber: userData.phoneNumber || '',
-        profilePictureUrl: userData.profilePictureUrl || '',
-      })
+      setError(null)
+      
+      // Try to load from API first
+      try {
+        const userData = await getUserProfile()
+        setUser(userData)
+        setFormData({
+          name: userData.name || '',
+          username: userData.username || '',
+          bio: userData.bio || '',
+          phoneNumber: userData.phoneNumber || '',
+          profilePictureUrl: userData.profilePictureUrl || '',
+        })
+      } catch (apiError) {
+        // If API fails, try to use local storage user
+        console.warn('API call failed, using local user data:', apiError)
+        const localUser = getLocalUser()
+        if (localUser) {
+          setUser(localUser)
+          setFormData({
+            name: localUser.name || '',
+            username: localUser.username || '',
+            bio: localUser.bio || '',
+            phoneNumber: localUser.phoneNumber || '',
+            profilePictureUrl: localUser.profilePictureUrl || '',
+          })
+        } else {
+          throw apiError
+        }
+      }
     } catch (err) {
-      setError(err.message || 'Failed to load profile')
+      console.error('Error loading profile:', err)
+      const errorMessage = err.response?.data?.error?.message || err.message || 'Failed to load profile'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
