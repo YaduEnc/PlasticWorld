@@ -96,14 +96,25 @@ app.get('/health', async (_req: Request, res: Response) => {
   }
 });
 
-// API routes will be added here in future phases
+// API routes
 const apiVersion = process.env.API_VERSION || 'v1';
+
+// Import routes
+import authRoutes from './routes/auth.routes';
+
+// Mount routes
+app.use(`/api/${apiVersion}/auth`, authRoutes);
+
+// API root endpoint
 app.get(`/api/${apiVersion}`, (_req: Request, res: Response) => {
   res.json({
     success: true,
     message: 'PlasticWorld API',
     version: apiVersion,
     timestamp: new Date().toISOString(),
+    endpoints: {
+      auth: `/api/${apiVersion}/auth`,
+    },
   });
 });
 
