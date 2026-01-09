@@ -2,6 +2,17 @@
 
 This document contains detailed Mermaid diagrams for visualizing the PlasticWorld backend architecture, API design, data flow, and system components.
 
+## 📖 How to View These Diagrams
+
+**Important:** Each diagram below is a separate Mermaid code block. To view them:
+
+1. **GitHub/GitLab:** Diagrams render automatically when viewing this file on GitHub
+2. **VS Code:** Install the "Markdown Preview Mermaid Support" extension
+3. **Mermaid Live Editor:** Copy each diagram's code block (between ` ```mermaid ` and ` ``` `) and paste into https://mermaid.live
+4. **Other Markdown Viewers:** Ensure your viewer supports Mermaid diagrams
+
+**⚠️ Do NOT copy the entire file** - each diagram must be viewed separately!
+
 ---
 
 ## 📐 System Architecture Overview
