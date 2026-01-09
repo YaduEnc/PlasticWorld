@@ -400,10 +400,14 @@
             if (!token) return;
             
             const updateData = {};
+            const username = document.getElementById('updateUsername').value.trim();
+            const phone = document.getElementById('updatePhone').value.trim();
             const name = document.getElementById('updateName').value.trim();
             const bio = document.getElementById('updateBio').value.trim();
             const picture = document.getElementById('updatePicture').value.trim();
             
+            if (username) updateData.username = username;
+            if (phone) updateData.phoneNumber = phone;
             if (name) updateData.name = name;
             if (bio) updateData.bio = bio;
             if (picture) updateData.profilePictureUrl = picture;
