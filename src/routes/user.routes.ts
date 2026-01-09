@@ -281,15 +281,36 @@ router.delete(
       throw new AppError('User not found', 404, 'USER_NOT_FOUND');
     }
 
+    // Store Firebase UID before deletion
+    const firebaseUid = user.firebaseUid;
+
     // Revoke all active sessions
     await sessionService.revokeAllSessions(userId);
 
-    // Soft delete user account
+    // Soft delete user account in database
     await userService.deleteUser(userId);
+
+    // Delete user from Firebase Authentication
+    try {
+      await deleteFirebaseUser(firebaseUid);
+      logger.info('User deleted from Firebase', {
+        firebaseUid,
+        userId,
+      });
+    } catch (error) {
+      // Log error but don't fail the request - user is already soft deleted in DB
+      logger.error('Failed to delete user from Firebase (user already soft deleted in DB)', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        firebaseUid,
+        userId,
+      });
+      // Continue - user is already soft deleted in our database
+    }
 
     logger.info('User account deleted', {
       userId,
       email: user.email,
+      firebaseUid,
     });
 
     res.status(200).json({
