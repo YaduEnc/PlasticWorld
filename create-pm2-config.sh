@@ -26,8 +26,11 @@ while IFS='=' read -r key value || [ -n "$key" ]; do
   # Skip if key is empty after trimming
   [[ -z "$key" ]] && continue
   
-  # Remove quotes if present and trim again
-  value=$(echo -n "$value" | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr -d '\r\n')
+  # Remove quotes if present but preserve the actual value (don't trim trailing = or other chars)
+  # Only trim whitespace, not the actual value content
+  value=$(echo -n "$value" | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
+  # Trim only leading/trailing whitespace, not the value itself
+  value=$(echo -n "$value" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//' | tr -d '\r\n')
   
   # Special handling for DB_HOST and REDIS_HOST
   if [ "$key" = "DB_HOST" ]; then
