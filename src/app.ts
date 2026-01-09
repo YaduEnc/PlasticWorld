@@ -107,9 +107,11 @@ const apiVersion = process.env.API_VERSION || 'v1';
 
 // Import routes
 import authRoutes from './routes/auth.routes';
+import userRoutes from './routes/user.routes';
 
 // Mount routes
 app.use(`/api/${apiVersion}/auth`, authRoutes);
+app.use(`/api/${apiVersion}/users`, userRoutes);
 
 // API root endpoint
 app.get(`/api/${apiVersion}`, (_req: Request, res: Response) => {
@@ -120,6 +122,7 @@ app.get(`/api/${apiVersion}`, (_req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     endpoints: {
       auth: `/api/${apiVersion}/auth`,
+      users: `/api/${apiVersion}/users`,
     },
   });
 });

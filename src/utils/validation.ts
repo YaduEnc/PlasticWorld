@@ -38,6 +38,58 @@ export const deviceInfoSchema = z.object({
 });
 
 /**
+ * Validation schemas for user endpoints
+ */
+
+// Update Profile
+export const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Name must be at least 1 character')
+    .max(100, 'Name must be at most 100 characters')
+    .optional(),
+  bio: z
+    .string()
+    .max(500, 'Bio must be at most 500 characters')
+    .optional(),
+  profilePictureUrl: z
+    .string()
+    .url('Profile picture URL must be a valid URL')
+    .optional()
+    .or(z.literal('').transform(() => undefined)), // Allow empty string to clear
+});
+
+// Update Status
+export const updateStatusSchema = z.object({
+  status: z.enum(['online', 'away', 'offline'], {
+    errorMap: () => ({ message: 'Status must be online, away, or offline' }),
+  }),
+});
+
+// Search Users Query Parameters
+export const searchUsersQuerySchema = z
+  .object({
+    q: z.string().min(1, 'Search query is required').max(100, 'Search query too long'),
+    type: z.enum(['username', 'email', 'phone', 'all']).optional(),
+    limit: z.string().optional(),
+    offset: z.string().optional(),
+  })
+  .transform((data) => ({
+    q: data.q,
+    type: (data.type || 'all') as 'username' | 'email' | 'phone' | 'all',
+    limit: data.limit ? parseInt(data.limit, 10) : 20,
+    offset: data.offset ? parseInt(data.offset, 10) : 0,
+  }))
+  .pipe(
+    z.object({
+      q: z.string(),
+      type: z.enum(['username', 'email', 'phone', 'all']),
+      limit: z.number().int().min(1).max(100),
+      offset: z.number().int().min(0),
+    })
+  );
+
+/**
  * Validate request body against schema
  */
 export function validateBody<T>(schema: z.ZodSchema<T>) {
@@ -56,6 +108,35 @@ export function validateBody<T>(schema: z.ZodSchema<T>) {
           success: false,
           error: {
             message: 'Validation failed',
+            code: 'VALIDATION_ERROR',
+            details: errors,
+          },
+        });
+      }
+      next(error);
+    }
+  };
+}
+
+/**
+ * Validate request query parameters against schema
+ */
+export function validateQuery<T>(schema: z.ZodSchema<T>) {
+  return (req: any, res: any, next: any) => {
+    try {
+      req.query = schema.parse(req.query);
+      next();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors = error.errors.map((err) => ({
+          field: err.path.join('.'),
+          message: err.message,
+        }));
+
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Query validation failed',
             code: 'VALIDATION_ERROR',
             details: errors,
           },

@@ -317,6 +317,189 @@ class UserService {
       });
     }
   }
+
+  /**
+   * Get public user profile (limited fields, no sensitive data)
+   */
+  async getPublicUserProfile(userId: string): Promise<Omit<User, 'email' | 'phoneNumber' | 'age' | 'firebaseUid'> | null> {
+    try {
+      const result = await database.query<Omit<User, 'email' | 'phoneNumber' | 'age' | 'firebaseUid'>>(
+        `SELECT 
+          id, username, name,
+          profile_picture_url as "profilePictureUrl", bio,
+          status, last_seen as "lastSeen", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM users
+        WHERE id = $1 AND is_active = true
+        LIMIT 1`,
+        [userId]
+      );
+
+      return result.rows[0] || null;
+    } catch (error) {
+      logger.error('Failed to get public user profile', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Search users by username, email, or phone number
+   */
+  async searchUsers(
+    searchTerm: string,
+    searchType: 'username' | 'email' | 'phone' | 'all' = 'all',
+    excludeUserId?: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<{ users: Omit<User, 'email' | 'phoneNumber' | 'age' | 'firebaseUid'>[]; total: number }> {
+    try {
+      const searchPattern = `%${searchTerm.toLowerCase()}%`;
+      let whereClause = 'is_active = true';
+      const queryParams: any[] = [];
+      let paramIndex = 1;
+
+      // Exclude current user from results
+      if (excludeUserId) {
+        whereClause += ` AND id != $${paramIndex}`;
+        queryParams.push(excludeUserId);
+        paramIndex++;
+      }
+
+      // Build search condition based on type
+      let searchCondition = '';
+      if (searchType === 'username') {
+        searchCondition = `LOWER(username) LIKE $${paramIndex}`;
+        queryParams.push(searchPattern);
+        paramIndex++;
+      } else if (searchType === 'email') {
+        searchCondition = `LOWER(email) LIKE $${paramIndex}`;
+        queryParams.push(searchPattern);
+        paramIndex++;
+      } else if (searchType === 'phone') {
+        searchCondition = `phone_number LIKE $${paramIndex}`;
+        queryParams.push(searchPattern);
+        paramIndex++;
+      } else {
+        // Search all fields
+        searchCondition = `(LOWER(username) LIKE $${paramIndex} OR LOWER(email) LIKE $${paramIndex} OR phone_number LIKE $${paramIndex})`;
+        queryParams.push(searchPattern, searchPattern, searchPattern);
+        paramIndex += 3;
+      }
+
+      whereClause += ` AND ${searchCondition}`;
+
+      // Get total count
+      const countResult = await database.query<{ count: string }>(
+        `SELECT COUNT(*) as count
+        FROM users
+        WHERE ${whereClause}`,
+        queryParams
+      );
+      const total = parseInt(countResult.rows[0].count, 10);
+
+      // Get users (public profile only)
+      const limitParam = paramIndex;
+      const offsetParam = paramIndex + 1;
+      queryParams.push(limit, offset);
+      
+      // Find the search pattern parameter index (first search param after excludeUserId)
+      const searchParamIndex = excludeUserId ? 2 : 1;
+      
+      const usersResult = await database.query<Omit<User, 'email' | 'phoneNumber' | 'age' | 'firebaseUid'>>(
+        `SELECT 
+          id, username, name,
+          profile_picture_url as "profilePictureUrl", bio,
+          status, last_seen as "lastSeen", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM users
+        WHERE ${whereClause}
+        ORDER BY 
+          CASE 
+            WHEN LOWER(username) = LOWER($${searchParamIndex}) THEN 1
+            WHEN LOWER(username) LIKE LOWER($${searchParamIndex}) THEN 2
+            ELSE 3
+          END,
+          username ASC
+        LIMIT $${limitParam} OFFSET $${offsetParam}`,
+        queryParams
+      );
+
+      return {
+        users: usersResult.rows,
+        total,
+      };
+    } catch (error) {
+      logger.error('Failed to search users', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        searchTerm,
+        searchType,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Update user status
+   */
+  async updateStatus(userId: string, status: 'online' | 'away' | 'offline'): Promise<User> {
+    try {
+      const result = await database.query<User>(
+        `UPDATE users 
+        SET status = $1, last_seen = CURRENT_TIMESTAMP
+        WHERE id = $2 AND is_active = true
+        RETURNING 
+          id, firebase_uid as "firebaseUid", username, email,
+          phone_number as "phoneNumber", name, age,
+          profile_picture_url as "profilePictureUrl", bio,
+          status, last_seen as "lastSeen", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"`,
+        [status, userId]
+      );
+
+      if (result.rows.length === 0) {
+        throw new Error('User not found');
+      }
+
+      logger.info('User status updated', { userId, status });
+
+      return result.rows[0];
+    } catch (error) {
+      logger.error('Failed to update user status', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId,
+        status,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Soft delete user account
+   */
+  async deleteUser(userId: string): Promise<void> {
+    try {
+      // Soft delete: set is_active = false
+      const result = await database.query(
+        'UPDATE users SET is_active = false WHERE id = $1 AND is_active = true',
+        [userId]
+      );
+
+      if (result.rowCount === 0) {
+        throw new Error('User not found or already deleted');
+      }
+
+      logger.info('User account deleted', { userId });
+    } catch (error) {
+      logger.error('Failed to delete user', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId,
+      });
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance
