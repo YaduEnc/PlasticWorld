@@ -13,7 +13,7 @@ http://localhost:3000/api/v1
 
 **Production:**
 ```
-https://api.plasticworld.com/api/v1
+https://plasticworld.yaduraj.me/api/v1
 ```
 
 ### 2. Authentication Flow

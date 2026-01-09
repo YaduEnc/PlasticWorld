@@ -94,7 +94,7 @@ tunnel: abc123def456
 credentials-file: /home/yadurajdoc/.cloudflared/abc123def456.json
 
 ingress:
-  - hostname: api.yaduraj.me
+  - hostname: plasticworld.yaduraj.me
     service: http://localhost:3000
   - service: http_status:404
 ```
@@ -171,7 +171,7 @@ sudo systemctl status cloudflared
 curl http://localhost:3000/health
 
 # Check via Cloudflare (should work after DNS propagates)
-curl https://api.yaduraj.me/health
+curl https://plasticworld.yaduraj.me/health
 
 # Check Docker containers
 docker ps
@@ -184,10 +184,10 @@ docker ps
 
 ```bash
 # Test API root
-curl https://api.yaduraj.me/api/v1
+curl https://plasticworld.yaduraj.me/api/v1
 
 # Test health
-curl https://api.yaduraj.me/health
+curl https://plasticworld.yaduraj.me/health
 ```
 
 ## 🔧 Useful Commands
@@ -321,7 +321,7 @@ docker system df
 ```
 
 ### Health Monitoring
-- Health endpoint: `https://api.yaduraj.me/health`
+- Health endpoint: `https://plasticworld.yaduraj.me/health`
 - Cloudflare Analytics: Check in Cloudflare Dashboard
 - Server monitoring: Use your preferred monitoring tool
 
@@ -339,7 +339,7 @@ git pull
 ./deploy.sh
 
 # Verify health
-curl https://api.yaduraj.me/health
+curl https://plasticworld.yaduraj.me/health
 ```
 
 ## 📝 Notes
@@ -355,4 +355,4 @@ curl https://api.yaduraj.me/health
 
 **Deployment Complete!** 🎉
 
-Your API should be accessible at: `https://api.yaduraj.me`
+Your API should be accessible at: `https://plasticworld.yaduraj.me`

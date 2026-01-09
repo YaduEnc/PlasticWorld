@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0  
 **Base URL:** `http://localhost:3000/api/v1` (Development)  
-**Production URL:** `https://api.plasticworld.com/api/v1` (Production)
+**Production URL:** `https://plasticworld.yaduraj.me/api/v1` (Production)
 
 ## 📋 Table of Contents
 

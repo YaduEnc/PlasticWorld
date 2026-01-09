@@ -3,7 +3,7 @@
 ## 🎯 Deployment Architecture
 
 ### Overview
-- **Domain**: `api.yaduraj.me` (subdomain)
+- **Domain**: `plasticworld.yaduraj.me` (subdomain)
 - **Infrastructure**: Fully Dockerized on Linux server
 - **Tunnel**: Cloudflare Tunnel (cloudflared)
 - **Services**: Backend API + PostgreSQL + Redis (all in Docker)
@@ -12,7 +12,7 @@
 ```
 Internet
    ↓
-Cloudflare (api.yaduraj.me)
+Cloudflare (plasticworld.yaduraj.me)
    ↓
 Cloudflare Tunnel (cloudflared)
    ↓
@@ -49,7 +49,7 @@ Linux Server (Docker Network)
 
 ### 4. **Cloudflare Tunnel Configuration**
 - cloudflared config file
-- Route api.yaduraj.me → localhost:3000
+- Route plasticworld.yaduraj.me → localhost:3000
 - SSL/TLS handled by Cloudflare
 
 ### 5. **Deployment Scripts**
@@ -73,7 +73,7 @@ Linux Server (Docker Network)
 - Set up firewall rules
 
 ### Step 2: Configure Cloudflare
-- Add `api.yaduraj.me` subdomain in Cloudflare DNS
+- Add `plasticworld.yaduraj.me` subdomain in Cloudflare DNS
 - Set up Cloudflare Tunnel
 - Configure tunnel to route to localhost:3000
 
@@ -145,7 +145,7 @@ Linux Server (Docker Network)
 NODE_ENV=production
 PORT=3000
 API_VERSION=v1
-BASE_URL=https://api.yaduraj.me
+BASE_URL=https://plasticworld.yaduraj.me
 
 # Database (Docker service names)
 DB_HOST=postgres
@@ -174,7 +174,7 @@ FIREBASE_CLIENT_EMAIL=<your-client-email>
 CORS_ORIGIN=https://yaduraj.me,https://www.yaduraj.me,https://app.yaduraj.me
 
 # Cloudflare Tunnel
-CLOUDFLARE_TUNNEL_URL=https://api.yaduraj.me
+CLOUDFLARE_TUNNEL_URL=https://plasticworld.yaduraj.me
 ```
 
 ## 🚀 Deployment Flow
@@ -220,7 +220,7 @@ CLOUDFLARE_TUNNEL_URL=https://api.yaduraj.me
 
 - [ ] Server has Docker & Docker Compose installed
 - [ ] Cloudflare Tunnel (cloudflared) installed
-- [ ] Domain `api.yaduraj.me` added to Cloudflare
+- [ ] Domain `plasticworld.yaduraj.me` added to Cloudflare
 - [ ] Firebase credentials ready
 - [ ] Strong passwords generated
 - [ ] JWT secret generated (64+ characters)
