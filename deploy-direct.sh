@@ -62,8 +62,8 @@ echo -e "${YELLOW}🔄 Running database migrations...${NC}"
 if [ ! -f node_modules/.bin/dotenv ]; then
     npm install --save-dev dotenv-cli
 fi
-# Run migration with environment variables loaded
-./node_modules/.bin/dotenv -e .env.production -- DB_HOST=localhost REDIS_HOST=localhost npm run db:migrate:prod
+# Run migration with environment variables loaded and override DB_HOST/REDIS_HOST
+./node_modules/.bin/dotenv -e .env.production -- sh -c 'DB_HOST=localhost REDIS_HOST=localhost npm run db:migrate:prod'
 
 echo -e "${YELLOW}🚀 Starting backend with PM2...${NC}"
 # Stop existing PM2 process if running
