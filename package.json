@@ -18,11 +18,6 @@
     "db:migrate": "tsx src/migrations/migrate.ts",
     "db:migrate:prod": "node dist/migrations/migrate.js",
     "db:seed": "node dist/seeders/seed.js",
-    "serve:token-page": "node serve-token-page.js",
-    "serve:token": "node serve-token-page.js",
-    "serve:test-page": "node serve-test-page.js",
-    "serve:friends-page": "node serve-friends-page.js",
-    "serve:messaging-page": "node serve-messaging-page.js"
   },
   "keywords": [
     "messaging",

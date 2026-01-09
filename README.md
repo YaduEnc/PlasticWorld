@@ -1,43 +1,253 @@
 # PlasticWorld Backend API
 
-Production-grade messaging platform backend with end-to-end encryption, built with Node.js, TypeScript, Express, PostgreSQL, Redis, and Socket.io.
+A production-ready, open-source messaging backend API with end-to-end encryption support. Built with Node.js, TypeScript, Express, PostgreSQL, Redis, and Socket.io.
 
-## 🚀 Features
+**Developed and Designed by [Yaduraj Singh](https://github.com/yadurajsingh)**
 
-- **Real-time Messaging**: WebSocket support with Socket.io
-- **End-to-End Encryption**: Signal Protocol implementation
-- **Scalable Architecture**: Microservices-ready design
-- **High Performance**: Optimized for <100ms latency
-- **Security First**: JWT authentication, rate limiting, input validation
-- **Production Ready**: Comprehensive logging, error handling, health checks
+## ✨ Features
 
-## 📋 Prerequisites
+- 🔐 **End-to-End Encryption** - Signal Protocol implementation for secure messaging
+- 💬 **Real-time Messaging** - WebSocket support with Socket.io
+- 👥 **User Management** - Firebase authentication, user profiles, friend requests
+- 🔒 **Security First** - JWT authentication, rate limiting, input validation, CORS
+- ⚡ **High Performance** - Optimized queries, connection pooling, Redis caching
+- 📊 **Production Ready** - Comprehensive logging, error handling, health checks
+- 🚀 **RESTful API** - Clean, well-documented REST endpoints
+- 🔌 **WebSocket Events** - Real-time notifications and updates
 
-**For Local Development (Mac):**
+## 🚀 Quick Start
+
+### Prerequisites
+
 - Node.js >= 18.0.0
 - npm >= 9.0.0
-- Docker and Docker Compose (for local databases)
-- PostgreSQL 15+ (via Docker)
-- Redis 7+ (via Docker)
+- Docker & Docker Compose (recommended) OR PostgreSQL 15+ and Redis 7+
 
-# PlasticWorld Backend - Architecture & API Design Diagrams
+### Installation
 
-This document contains detailed Mermaid diagrams for visualizing the PlasticWorld backend architecture, API design, data flow, and system components.
+1. **Clone the repository**
+```bash
+git clone https://github.com/yourusername/plasticworld-backend.git
+cd plasticworld-backend
+```
 
-## 📖 How to View These Diagrams
+2. **Install dependencies**
+```bash
+npm install
+```
 
-**Important:** Each diagram below is a separate Mermaid code block. To view them:
+3. **Set up environment variables**
+```bash
+cp .env.example .env
+```
 
-1. **GitHub/GitLab:** Diagrams render automatically when viewing this file on GitHub
-2. **VS Code:** Install the "Markdown Preview Mermaid Support" extension
-3. **Mermaid Live Editor:** Copy each diagram's code block (between ` ```mermaid ` and ` ``` `) and paste into https://mermaid.live
-4. **Other Markdown Viewers:** Ensure your viewer supports Mermaid diagrams
+Edit `.env` with your configuration (see [.env.example](./.env.example) for all options).
 
-**⚠️ Do NOT copy the entire file** - each diagram must be viewed separately!
+4. **Set up databases with Docker Compose** (recommended)
+```bash
+# Start PostgreSQL and Redis
+docker-compose up -d
 
----
+# Verify containers are running
+docker-compose ps
+```
 
-## 📐 System Architecture Overview
+5. **Run database migrations**
+```bash
+npm run db:migrate
+```
+
+6. **Build TypeScript**
+```bash
+npm run build
+```
+
+7. **Start the server**
+```bash
+# Development (with hot reload)
+npm run dev
+
+# Production
+npm start
+```
+
+The API will be available at `http://localhost:3000`
+
+## 🐳 Docker
+
+### Development Setup
+
+The project includes `docker-compose.yml` for easy local development with PostgreSQL and Redis.
+
+#### Start Services
+```bash
+# Start PostgreSQL and Redis
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Stop and remove volumes (clean slate)
+docker-compose down -v
+```
+
+#### Environment Variables for Docker
+The `docker-compose.yml` uses environment variables from your `.env` file:
+- `DB_NAME`, `DB_USER`, `DB_PASSWORD` - PostgreSQL configuration
+- `REDIS_PASSWORD` - Redis password (optional)
+
+### Dockerfile
+
+The project includes a production-ready `Dockerfile` with multi-stage build:
+
+```bash
+# Build the Docker image
+docker build -t plasticworld-backend .
+
+# Run the container
+docker run -p 3000:3000 --env-file .env plasticworld-backend
+```
+
+#### Dockerfile Features
+- Multi-stage build for optimized image size
+- Non-root user for security
+- Health check endpoint
+- Proper signal handling with dumb-init
+- Production dependencies only
+
+### Docker Compose for Full Stack
+
+You can extend `docker-compose.yml` to include the backend API:
+
+```yaml
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - plasticworld-network
+```
+
+Then run:
+```bash
+docker-compose up --build
+```
+
+## 📚 API Documentation
+
+### Base URL
+- **Development**: `http://localhost:3000/api/v1`
+- **Production**: `https://your-domain.com/api/v1`
+
+### WebSocket
+- **Development**: `ws://localhost:3000`
+- **Production**: `wss://your-domain.com`
+
+### Endpoints
+
+#### Authentication
+- `POST /auth/google-signin` - Sign in with Google (Firebase)
+- `POST /auth/refresh` - Refresh access token
+- `POST /auth/logout` - Logout and invalidate session
+- `POST /auth/profile-complete` - Complete user profile after first sign-in
+
+#### Users
+- `GET /users/me` - Get current user profile
+- `PUT /users/me` - Update current user profile
+- `GET /users/search` - Search users by username/email
+- `GET /users/:userId` - Get public user profile
+
+#### Friends
+- `GET /friends` - Get friends list
+- `POST /friends/request` - Send friend request
+- `POST /friends/:friendshipId/accept` - Accept friend request
+- `POST /friends/:friendshipId/reject` - Reject friend request
+- `DELETE /friends/:friendshipId` - Remove friend
+- `POST /friends/:userId/block` - Block user
+- `DELETE /friends/:userId/block` - Unblock user
+
+#### Messages
+- `POST /messages` - Send a message
+- `GET /messages` - Get messages (with pagination)
+- `GET /messages/:messageId` - Get specific message
+- `PUT /messages/:messageId` - Edit message
+- `DELETE /messages/:messageId` - Delete message
+- `POST /messages/:messageId/delivered` - Mark message as delivered
+- `POST /messages/:messageId/read` - Mark message as read
+- `POST /messages/read` - Mark multiple messages as read
+
+#### Encryption
+- `GET /encryption/keys/prekey-bundle/:userId/:deviceId` - Get prekey bundle for key exchange
+- `POST /encryption/session/establish` - Establish encryption session
+- `GET /encryption/keys` - Get current user's encryption keys
+
+#### Health
+- `GET /health` - Health check endpoint
+
+For detailed API documentation, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+
+## 🔌 WebSocket Events
+
+### Client → Server
+- `message:send` - Send a message
+- `typing:start` - Start typing indicator
+- `typing:stop` - Stop typing indicator
+- `status:update` - Update user status
+
+### Server → Client
+- `message:received` - New message received
+- `message:delivered` - Message delivered to recipient
+- `message:read` - Message read by recipient
+- `typing:start` - User started typing
+- `typing:stop` - User stopped typing
+- `user:online` - User came online
+- `user:offline` - User went offline
+- `friend:request:received` - New friend request
+- `friend:request:accepted` - Friend request accepted
+
+## 🏗️ Architecture
+
+### Tech Stack
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Express.js
+- **Database**: PostgreSQL
+- **Cache**: Redis
+- **WebSocket**: Socket.io
+- **Authentication**: Firebase Admin SDK + JWT
+- **Encryption**: Signal Protocol (X3DH + Double Ratchet)
+- **Logging**: Winston
+
+### Project Structure
+```
+plasticworld-backend/
+├── src/
+│   ├── config/          # Configuration (database, redis, firebase, socket)
+│   ├── middleware/       # Express middleware (auth, error handling)
+│   ├── routes/          # API route handlers
+│   ├── services/        # Business logic services
+│   ├── migrations/      # Database migrations
+│   ├── utils/           # Utilities (logger, validation)
+│   ├── app.ts           # Express app setup
+│   └── server.ts        # Server entry point
+├── dist/                # Compiled JavaScript (generated)
+├── logs/                # Log files (generated)
+├── docker-compose.yml   # Docker setup for local development
+├── Dockerfile           # Production Docker image
+└── package.json
+```
+
+## 📐 Architecture Diagrams
+
+### System Architecture Overview
 
 ```mermaid
 graph TB
@@ -123,9 +333,7 @@ graph TB
     style Firebase fill:#FFCA28
 ```
 
----
-
-## 🔄 Authentication Flow
+### Authentication Flow
 
 ```mermaid
 sequenceDiagram
@@ -166,50 +374,7 @@ sequenceDiagram
     Client->>Client: Store tokens securely<br/>(Keychain/SecureStorage)
 ```
 
----
-
-## 🔄 Token Refresh Flow
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Backend
-    participant Redis
-    participant PostgreSQL
-    
-    Client->>Backend: API Request<br/>Authorization: Bearer <expired-token>
-    Backend->>Backend: Verify JWT token
-    Backend-->>Client: 401 Unauthorized<br/>{code: "TOKEN_EXPIRED"}
-    
-    Client->>Backend: POST /auth/refresh<br/>{refreshToken}
-    Backend->>Backend: Verify refresh token<br/>(JWT signature)
-    
-    Backend->>Redis: Get session<br/>{userId, deviceId}
-    Redis-->>Backend: Session data
-    
-    alt Session valid
-        Backend->>PostgreSQL: Verify device exists<br/>& user is active
-        PostgreSQL-->>Backend: Device & user valid
-        
-        Backend->>Backend: Generate new token pair
-        
-        Backend->>Redis: Update session<br/>{newRefreshToken}
-        Redis-->>Backend: Session updated
-        
-        Backend-->>Client: {newAccessToken, newRefreshToken}
-        
-        Client->>Client: Update stored tokens
-        Client->>Backend: Retry original request<br/>with new access token
-        Backend-->>Client: Original response
-    else Session invalid
-        Backend-->>Client: 401 Unauthorized<br/>{code: "SESSION_INVALID"}
-        Client->>Client: Redirect to login
-    end
-```
-
----
-
-## 💬 Message Sending Flow
+### Message Sending Flow
 
 ```mermaid
 sequenceDiagram
@@ -250,45 +415,7 @@ sequenceDiagram
     end
 ```
 
----
-
-## 📨 Message Delivery & Read Receipts
-
-```mermaid
-sequenceDiagram
-    participant Sender
-    participant Backend
-    participant PostgreSQL
-    participant WebSocket
-    participant Recipient
-    
-    Note over Recipient: Message received<br/>(via WebSocket or polling)
-    
-    Recipient->>Backend: POST /messages/:id/delivered
-    Backend->>PostgreSQL: Update message<br/>{deliveredAt, status: "delivered"}
-    PostgreSQL-->>Backend: Updated
-    
-    Backend->>WebSocket: Emit to sender<br/>"message:delivered"
-    WebSocket->>Sender: Delivery notification<br/>{messageId}
-    Sender->>Sender: Update UI<br/>Show "delivered" status
-    
-    Note over Recipient: User opens message<br/>& reads content
-    
-    Recipient->>Backend: POST /messages/:id/read<br/>or POST /messages/read (bulk)
-    Backend->>PostgreSQL: Update message(s)<br/>{readAt, status: "read"}
-    PostgreSQL-->>Backend: Updated
-    
-    Backend->>PostgreSQL: Update unread count<br/>(decrement)
-    PostgreSQL-->>Backend: Count updated
-    
-    Backend->>WebSocket: Emit to sender<br/>"message:read"
-    WebSocket->>Sender: Read receipt<br/>{messageId}
-    Sender->>Sender: Update UI<br/>Show "read" status
-```
-
----
-
-## 🔐 End-to-End Encryption Flow (Signal Protocol)
+### End-to-End Encryption Flow (Signal Protocol)
 
 ```mermaid
 sequenceDiagram
@@ -330,96 +457,7 @@ sequenceDiagram
     Note over Alice,Bob: Subsequent messages use<br/>Double Ratchet only<br/>(no X3DH needed)
 ```
 
----
-
-## 👥 Friendship Management Flow
-
-```mermaid
-sequenceDiagram
-    participant UserA
-    participant Backend
-    participant PostgreSQL
-    participant WebSocket
-    participant UserB
-    
-    UserA->>Backend: POST /friends/request<br/>{userId: UserB}
-    
-    Backend->>PostgreSQL: Check if already friends<br/>or blocked
-    PostgreSQL-->>Backend: Status check
-    
-    alt Already friends
-        Backend-->>UserA: 409 Conflict<br/>{code: "ALREADY_FRIENDS"}
-    else Blocked
-        Backend-->>UserA: 403 Forbidden<br/>{code: "BLOCKED"}
-    else Valid request
-        Backend->>PostgreSQL: Create friendship<br/>{requesterId: UserA, status: "pending"}
-        PostgreSQL-->>Backend: Friendship created
-        
-        Backend->>Redis: Check if UserB online
-        Redis-->>Backend: Online status
-        
-        Backend-->>UserA: 201 Created<br/>{friendship}
-        
-        alt UserB online
-            Backend->>WebSocket: Emit to UserB<br/>"friend:request:received"
-            WebSocket->>UserB: Notification<br/>{friendship, requester}
-            UserB->>UserB: Show notification<br/>"New friend request"
-        end
-    end
-    
-    Note over UserB: UserB sees request<br/>& decides to accept
-    
-    UserB->>Backend: POST /friends/:friendshipId/accept
-    
-    Backend->>PostgreSQL: Update friendship<br/>{status: "accepted", respondedAt}
-    PostgreSQL-->>Backend: Updated
-    
-    Backend->>WebSocket: Emit to UserA<br/>"friend:request:accepted"
-    WebSocket->>UserA: Notification<br/>{friendship}
-    
-    Backend-->>UserB: 200 OK<br/>{friendship}
-    
-    UserA->>UserA: Update UI<br/>Show UserB as friend
-    UserB->>UserB: Update UI<br/>Show UserA as friend
-```
-
----
-
-## 🔌 WebSocket Connection & Events
-
-```mermaid
-stateDiagram-v2
-    [*] --> Disconnected
-    
-    Disconnected --> Connecting: Client connects<br/>with access token
-    
-    Connecting --> Authenticating: Socket.io connection<br/>established
-    
-    Authenticating --> Authenticated: Token validated<br/>User & device verified
-    
-    Authenticating --> Disconnected: Authentication failed<br/>(invalid token)
-    
-    Authenticated --> Connected: Join user room<br/>Set online status
-    
-    Connected --> ReceivingEvents: Listen for events
-    
-    ReceivingEvents --> ReceivingEvents: message:received<br/>typing:start/stop<br/>user:online/offline<br/>status:update
-    
-    Connected --> SendingEvents: Emit events
-    
-    SendingEvents --> SendingEvents: message:send<br/>typing:start/stop<br/>status:update<br/>message:read
-    
-    ReceivingEvents --> Connected
-    SendingEvents --> Connected
-    
-    Connected --> Disconnected: Client disconnects<br/>or error
-    
-    Disconnected --> [*]
-```
-
----
-
-## 🗄️ Database Schema Relationships
+### Database Schema Relationships
 
 ```mermaid
 erDiagram
@@ -444,11 +482,8 @@ erDiagram
         varchar firebase_uid UK
         varchar username UK
         varchar email UK
-        varchar phone_number UK
         varchar name
-        integer age
         text profile_picture_url
-        varchar bio
         enum status
         timestamp last_seen
         boolean is_active
@@ -461,7 +496,6 @@ erDiagram
         uuid user_id FK
         varchar device_name
         enum device_type
-        varchar device_token
         boolean is_active
         timestamp created_at
         timestamp updated_at
@@ -486,14 +520,6 @@ erDiagram
         timestamp responded_at
     }
     
-    BLOCKS {
-        uuid id PK
-        uuid blocker_id FK
-        uuid blocked_id FK
-        text reason
-        timestamp created_at
-    }
-    
     MESSAGES {
         uuid id PK
         uuid sender_id FK
@@ -501,33 +527,10 @@ erDiagram
         text encrypted_content
         text encrypted_key
         enum message_type
-        text media_url
-        bigint media_size_bytes
         enum status
-        uuid reply_to_message_id FK
-        boolean is_edited
-        timestamp edited_at
-        timestamp deleted_at
         timestamp sent_at
         timestamp delivered_at
         timestamp read_at
-    }
-    
-    MESSAGE_RECEIPTS {
-        uuid id PK
-        uuid message_id FK
-        uuid recipient_id FK
-        enum receipt_type
-        timestamp received_at
-    }
-    
-    MESSAGE_MEDIA {
-        uuid id PK
-        uuid message_id FK
-        text media_url
-        bigint file_size_bytes
-        varchar mime_type
-        timestamp created_at
     }
     
     ENCRYPTION_KEYS {
@@ -536,59 +539,12 @@ erDiagram
         uuid device_id FK
         text identity_key_public
         text signed_prekey_public
-        text signed_prekey_signature
         integer prekey_count
-        timestamp key_created_at
-        timestamp key_expires_at
         boolean is_active
     }
 ```
 
----
-
-## 🔄 Real-Time Typing Indicators
-
-```mermaid
-sequenceDiagram
-    participant UserA
-    participant WebSocket
-    participant Backend
-    participant Redis
-    participant UserB
-    
-    UserA->>UserA: User starts typing
-    
-    UserA->>WebSocket: Emit "typing:start"<br/>{recipientId: UserB}
-    WebSocket->>Backend: Handle typing event
-    
-    Backend->>Redis: Store typing indicator<br/>{userId: UserA, recipientId: UserB, timestamp}
-    Redis-->>Backend: Stored
-    
-    Backend->>Redis: Check if UserB online
-    Redis-->>Backend: Online status
-    
-    alt UserB online
-        Backend->>WebSocket: Emit to UserB<br/>"typing:start"
-        WebSocket->>UserB: Real-time event<br/>{userId: UserA, name: "User A"}
-        UserB->>UserB: Show typing indicator<br/>"User A is typing..."
-    end
-    
-    Note over UserA: User stops typing<br/>(after 3 seconds timeout)
-    
-    UserA->>WebSocket: Emit "typing:stop"<br/>{recipientId: UserB}
-    WebSocket->>Backend: Handle stop event
-    
-    Backend->>Redis: Remove typing indicator
-    Redis-->>Backend: Removed
-    
-    Backend->>WebSocket: Emit to UserB<br/>"typing:stop"
-    WebSocket->>UserB: Real-time event<br/>{userId: UserA}
-    UserB->>UserB: Hide typing indicator
-```
-
----
-
-## 📊 API Request/Response Flow
+### API Request/Response Flow
 
 ```mermaid
 graph LR
@@ -640,66 +596,335 @@ graph LR
     style Cache fill:#DC382D
 ```
 
----
+### Token Refresh Flow
 
-## 🚀 Deployment Architecture
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Backend
+    participant Redis
+    participant PostgreSQL
+    
+    Client->>Backend: API Request<br/>Authorization: Bearer <expired-token>
+    Backend->>Backend: Verify JWT token
+    Backend-->>Client: 401 Unauthorized<br/>{code: "TOKEN_EXPIRED"}
+    
+    Client->>Backend: POST /auth/refresh<br/>{refreshToken}
+    Backend->>Backend: Verify refresh token<br/>(JWT signature)
+    
+    Backend->>Redis: Get session<br/>{userId, deviceId}
+    Redis-->>Backend: Session data
+    
+    alt Session valid
+        Backend->>PostgreSQL: Verify device exists<br/>& user is active
+        PostgreSQL-->>Backend: Device & user valid
+        
+        Backend->>Backend: Generate new token pair
+        
+        Backend->>Redis: Update session<br/>{newRefreshToken}
+        Redis-->>Backend: Session updated
+        
+        Backend-->>Client: {newAccessToken, newRefreshToken}
+        
+        Client->>Client: Update stored tokens
+        Client->>Backend: Retry original request<br/>with new access token
+        Backend-->>Client: Original response
+    else Session invalid
+        Backend-->>Client: 401 Unauthorized<br/>{code: "SESSION_INVALID"}
+        Client->>Client: Redirect to login
+    end
+```
+
+### Message Delivery & Read Receipts
+
+```mermaid
+sequenceDiagram
+    participant Sender
+    participant Backend
+    participant PostgreSQL
+    participant WebSocket
+    participant Recipient
+    
+    Note over Recipient: Message received<br/>(via WebSocket or polling)
+    
+    Recipient->>Backend: POST /messages/:id/delivered
+    Backend->>PostgreSQL: Update message<br/>{deliveredAt, status: "delivered"}
+    PostgreSQL-->>Backend: Updated
+    
+    Backend->>WebSocket: Emit to sender<br/>"message:delivered"
+    WebSocket->>Sender: Delivery notification<br/>{messageId}
+    Sender->>Sender: Update UI<br/>Show "delivered" status
+    
+    Note over Recipient: User opens message<br/>& reads content
+    
+    Recipient->>Backend: POST /messages/:id/read<br/>or POST /messages/read (bulk)
+    Backend->>PostgreSQL: Update message(s)<br/>{readAt, status: "read"}
+    PostgreSQL-->>Backend: Updated
+    
+    Backend->>PostgreSQL: Update unread count<br/>(decrement)
+    PostgreSQL-->>Backend: Count updated
+    
+    Backend->>WebSocket: Emit to sender<br/>"message:read"
+    WebSocket->>Sender: Read receipt<br/>{messageId}
+    Sender->>Sender: Update UI<br/>Show "read" status
+```
+
+### Friendship Management Flow
+
+```mermaid
+sequenceDiagram
+    participant UserA
+    participant Backend
+    participant PostgreSQL
+    participant WebSocket
+    participant UserB
+    
+    UserA->>Backend: POST /friends/request<br/>{userId: UserB}
+    
+    Backend->>PostgreSQL: Check if already friends<br/>or blocked
+    PostgreSQL-->>Backend: Status check
+    
+    alt Already friends
+        Backend-->>UserA: 409 Conflict<br/>{code: "ALREADY_FRIENDS"}
+    else Blocked
+        Backend-->>UserA: 403 Forbidden<br/>{code: "BLOCKED"}
+    else Valid request
+        Backend->>PostgreSQL: Create friendship<br/>{requesterId: UserA, status: "pending"}
+        PostgreSQL-->>Backend: Friendship created
+        
+        Backend->>Redis: Check if UserB online
+        Redis-->>Backend: Online status
+        
+        Backend-->>UserA: 201 Created<br/>{friendship}
+        
+        alt UserB online
+            Backend->>WebSocket: Emit to UserB<br/>"friend:request:received"
+            WebSocket->>UserB: Notification<br/>{friendship, requester}
+            UserB->>UserB: Show notification<br/>"New friend request"
+        end
+    end
+    
+    Note over UserB: UserB sees request<br/>& decides to accept
+    
+    UserB->>Backend: POST /friends/:friendshipId/accept
+    
+    Backend->>PostgreSQL: Update friendship<br/>{status: "accepted", respondedAt}
+    PostgreSQL-->>Backend: Updated
+    
+    Backend->>WebSocket: Emit to UserA<br/>"friend:request:accepted"
+    WebSocket->>UserA: Notification<br/>{friendship}
+    
+    Backend-->>UserB: 200 OK<br/>{friendship}
+    
+    UserA->>UserA: Update UI<br/>Show UserB as friend
+    UserB->>UserB: Update UI<br/>Show UserA as friend
+```
+
+### WebSocket Connection & Events
+
+```mermaid
+stateDiagram-v2
+    [*] --> Disconnected
+    
+    Disconnected --> Connecting: Client connects<br/>with access token
+    
+    Connecting --> Authenticating: Socket.io connection<br/>established
+    
+    Authenticating --> Authenticated: Token validated<br/>User & device verified
+    
+    Authenticating --> Disconnected: Authentication failed<br/>(invalid token)
+    
+    Authenticated --> Connected: Join user room<br/>Set online status
+    
+    Connected --> ReceivingEvents: Listen for events
+    
+    ReceivingEvents --> ReceivingEvents: message:received<br/>typing:start/stop<br/>user:online/offline<br/>status:update
+    
+    Connected --> SendingEvents: Emit events
+    
+    SendingEvents --> SendingEvents: message:send<br/>typing:start/stop<br/>status:update<br/>message:read
+    
+    ReceivingEvents --> Connected
+    SendingEvents --> Connected
+    
+    Connected --> Disconnected: Client disconnects<br/>or error
+    
+    Disconnected --> [*]
+```
+
+### Real-Time Typing Indicators
+
+```mermaid
+sequenceDiagram
+    participant UserA
+    participant WebSocket
+    participant Backend
+    participant Redis
+    participant UserB
+    
+    UserA->>UserA: User starts typing
+    
+    UserA->>WebSocket: Emit "typing:start"<br/>{recipientId: UserB}
+    WebSocket->>Backend: Handle typing event
+    
+    Backend->>Redis: Store typing indicator<br/>{userId: UserA, recipientId: UserB, timestamp}
+    Redis-->>Backend: Stored
+    
+    Backend->>Redis: Check if UserB online
+    Redis-->>Backend: Online status
+    
+    alt UserB online
+        Backend->>WebSocket: Emit to UserB<br/>"typing:start"
+        WebSocket->>UserB: Real-time event<br/>{userId: UserA, name: "User A"}
+        UserB->>UserB: Show typing indicator<br/>"User A is typing..."
+    end
+    
+    Note over UserA: User stops typing<br/>(after 3 seconds timeout)
+    
+    UserA->>WebSocket: Emit "typing:stop"<br/>{recipientId: UserB}
+    WebSocket->>Backend: Handle stop event
+    
+    Backend->>Redis: Remove typing indicator
+    Redis-->>Backend: Removed
+    
+    Backend->>WebSocket: Emit to UserB<br/>"typing:stop"
+    WebSocket->>UserB: Real-time event<br/>{userId: UserA}
+    UserB->>UserB: Hide typing indicator
+```
+
+### Complete Message Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft: User composes message
+    
+    Draft --> Encrypting: User sends message
+    
+    Encrypting --> Encrypted: Signal Protocol encryption<br/>(client-side)
+    
+    Encrypted --> Sending: POST /messages API call
+    
+    Sending --> Sent: Message stored in database<br/>status: "sent"
+    
+    Sent --> Delivering: Recipient device receives<br/>(WebSocket or polling)
+    
+    Delivering --> Delivered: POST /messages/:id/delivered<br/>status: "delivered"
+    
+    Delivered --> Reading: Recipient opens message
+    
+    Reading --> Read: POST /messages/:id/read<br/>status: "read"
+    
+    Read --> [*]: Message lifecycle complete
+    
+    Sent --> Editing: User edits message<br/>(within 15 minutes)
+    Editing --> Sent: PUT /messages/:id
+    
+    Sent --> Deleting: User deletes message
+    Deleting --> Deleted: DELETE /messages/:id<br/>soft delete (deleted_at)
+    Deleted --> [*]
+    
+    note right of Encrypting
+        Client-side encryption
+        Server never sees plaintext
+    end note
+    
+    note right of Sent
+        Real-time delivery
+        via WebSocket if online
+    end note
+```
+
+### Multi-Device Support
+
+```mermaid
+sequenceDiagram
+    participant Device1
+    participant Backend
+    participant PostgreSQL
+    participant Redis
+    participant Device2
+    
+    Note over Device1: User signs in on Device 1
+    
+    Device1->>Backend: POST /auth/google-signin<br/>{deviceInfo: Device1}
+    Backend->>PostgreSQL: Create device record<br/>{deviceId: D1, deviceType: "ios"}
+    PostgreSQL-->>Backend: Device created
+    Backend-->>Device1: {accessToken, device: D1}
+    
+    Note over Device2: User signs in on Device 2
+    
+    Device2->>Backend: POST /auth/google-signin<br/>{deviceInfo: Device2}
+    Backend->>PostgreSQL: Create device record<br/>{deviceId: D2, deviceType: "android"}
+    PostgreSQL-->>Backend: Device created
+    Backend-->>Device2: {accessToken, device: D2}
+    
+    Note over Device1: User sends message from Device 1
+    
+    Device1->>Backend: POST /messages<br/>{recipientId, encryptedContent}
+    Backend->>PostgreSQL: Store message
+    Backend->>Redis: Check recipient online devices
+    Redis-->>Backend: [Device3, Device4]
+    
+    Backend->>Backend: Broadcast to all recipient devices<br/>(via WebSocket)
+    Backend->>Device2: Message notification<br/>(if Device2 is recipient)
+    
+    Note over Device2: User reads message on Device 2
+    
+    Device2->>Backend: POST /messages/:id/read
+    Backend->>PostgreSQL: Update message status
+    Backend->>Redis: Update unread count
+    
+    Backend->>Backend: Broadcast read receipt<br/>to all sender devices
+    Backend->>Device1: Read receipt notification<br/>{messageId, readAt}
+    
+    Device1->>Device1: Update UI<br/>Show "read" status
+```
+
+### Performance Optimization
 
 ```mermaid
 graph TB
-    subgraph "Internet"
-        Users[End Users]
+    subgraph "Caching Strategy"
+        RedisCache[Redis Cache<br/>User Profiles, Sessions]
+        QueryCache[Query Result Cache<br/>Friends Lists, Conversations]
+        SessionCache[Session Cache<br/>Active Sessions]
     end
     
-    subgraph "Cloudflare"
-        DNS[DNS<br/>plasticworld.yaduraj.me]
-        Tunnel[Cloudflare Tunnel<br/>Secure Proxy]
+    subgraph "Database Optimization"
+        Indexes[Database Indexes<br/>User Lookups, Message Queries]
+        ConnectionPool[Connection Pooling<br/>PostgreSQL Pool]
+        QueryOptimization[Query Optimization<br/>Efficient Joins]
     end
     
-    subgraph "Server"
-        subgraph "PM2 Process Manager"
-            API1[API Instance 1<br/>Port 3000]
-            API2[API Instance 2<br/>Port 3001]
-            WS[WebSocket Server<br/>Port 3000]
-        end
-        
-        subgraph "Docker Containers"
-            PG[(PostgreSQL<br/>Port 5432)]
-            Redis[(Redis<br/>Port 6379)]
-        end
-        
-        Logs[Log Files<br/>/app/logs]
+    subgraph "API Optimization"
+        Pagination[Pagination<br/>Limit/Offset]
+        LazyLoading[Lazy Loading<br/>On-Demand Data]
+        Compression[Response Compression<br/>Gzip]
     end
     
-    Users --> DNS
-    DNS --> Tunnel
-    Tunnel --> API1
-    Tunnel --> API2
-    Tunnel --> WS
+    subgraph "Real-Time Optimization"
+        WebSocketPool[WebSocket Connection Pool<br/>Reuse Connections]
+        EventBatching[Event Batching<br/>Group Updates]
+        Debouncing[Debouncing<br/>Typing Indicators]
+    end
     
-    API1 --> PG
-    API1 --> Redis
-    API2 --> PG
-    API2 --> Redis
-    WS --> Redis
-    WS --> PG
+    RedisCache --> Indexes
+    QueryCache --> ConnectionPool
+    SessionCache --> QueryOptimization
+    Indexes --> Pagination
+    ConnectionPool --> LazyLoading
+    QueryOptimization --> Compression
+    Pagination --> WebSocketPool
+    LazyLoading --> EventBatching
+    Compression --> Debouncing
     
-    API1 --> Logs
-    API2 --> Logs
-    WS --> Logs
-    
-    style Users fill:#4CAF50
-    style DNS fill:#F38020
-    style Tunnel fill:#F38020
-    style API1 fill:#339933
-    style API2 fill:#339933
-    style WS fill:#010101
-    style PG fill:#336791
-    style Redis fill:#DC382D
+    style RedisCache fill:#DC382D
+    style Indexes fill:#336791
+    style Pagination fill:#4CAF50
+    style WebSocketPool fill:#010101
 ```
 
----
-
-## 🔐 Security Architecture
+### Security Architecture
 
 ```mermaid
 graph TB
@@ -757,277 +982,108 @@ graph TB
     style DBEncrypt fill:#336791
 ```
 
----
+For more detailed architecture diagrams, see [ARCHITECTURE_DIAGRAMS.md](./ARCHITECTURE_DIAGRAMS.md)
 
-## 📈 Performance Optimization
+## 🔐 Security
 
-```mermaid
-graph TB
-    subgraph "Caching Strategy"
-        RedisCache[Redis Cache<br/>User Profiles, Sessions]
-        QueryCache[Query Result Cache<br/>Friends Lists, Conversations]
-        SessionCache[Session Cache<br/>Active Sessions]
-    end
-    
-    subgraph "Database Optimization"
-        Indexes[Database Indexes<br/>User Lookups, Message Queries]
-        ConnectionPool[Connection Pooling<br/>PostgreSQL Pool]
-        QueryOptimization[Query Optimization<br/>Efficient Joins]
-    end
-    
-    subgraph "API Optimization"
-        Pagination[Pagination<br/>Limit/Offset]
-        LazyLoading[Lazy Loading<br/>On-Demand Data]
-        Compression[Response Compression<br/>Gzip]
-    end
-    
-    subgraph "Real-Time Optimization"
-        WebSocketPool[WebSocket Connection Pool<br/>Reuse Connections]
-        EventBatching[Event Batching<br/>Group Updates]
-        Debouncing[Debouncing<br/>Typing Indicators]
-    end
-    
-    RedisCache --> Indexes
-    QueryCache --> ConnectionPool
-    SessionCache --> QueryOptimization
-    Indexes --> Pagination
-    ConnectionPool --> LazyLoading
-    QueryOptimization --> Compression
-    Pagination --> WebSocketPool
-    LazyLoading --> EventBatching
-    Compression --> Debouncing
-    
-    style RedisCache fill:#DC382D
-    style Indexes fill:#336791
-    style Pagination fill:#4CAF50
-    style WebSocketPool fill:#010101
+- **Authentication**: Firebase OAuth + JWT tokens
+- **Authorization**: Role-based access control
+- **Encryption**: End-to-end encryption with Signal Protocol
+- **Rate Limiting**: 100 requests per 15 minutes per IP
+- **CORS**: Configurable origin whitelist
+- **Input Validation**: Zod schema validation
+- **SQL Injection Prevention**: Parameterized queries
+- **Security Headers**: Helmet.js
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
 ```
 
----
+## 📝 Development
 
-## 🔄 Complete Message Lifecycle
+### Code Quality
+```bash
+# Lint code
+npm run lint
 
-```mermaid
-stateDiagram-v2
-    [*] --> Draft: User composes message
-    
-    Draft --> Encrypting: User sends message
-    
-    Encrypting --> Encrypted: Signal Protocol encryption<br/>(client-side)
-    
-    Encrypted --> Sending: POST /messages API call
-    
-    Sending --> Sent: Message stored in database<br/>status: "sent"
-    
-    Sent --> Delivering: Recipient device receives<br/>(WebSocket or polling)
-    
-    Delivering --> Delivered: POST /messages/:id/delivered<br/>status: "delivered"
-    
-    Delivered --> Reading: Recipient opens message
-    
-    Reading --> Read: POST /messages/:id/read<br/>status: "read"
-    
-    Read --> [*]: Message lifecycle complete
-    
-    Sent --> Editing: User edits message<br/>(within 15 minutes)
-    Editing --> Sent: PUT /messages/:id
-    
-    Sent --> Deleting: User deletes message
-    Deleting --> Deleted: DELETE /messages/:id<br/>soft delete (deleted_at)
-    Deleted --> [*]
-    
-    note right of Encrypting
-        Client-side encryption
-        Server never sees plaintext
-    end note
-    
-    note right of Sent
-        Real-time delivery
-        via WebSocket if online
-    end note
+# Fix linting issues
+npm run lint:fix
+
+# Format code
+npm run format
+
+# Type check
+npm run typecheck
 ```
 
----
+### Database Migrations
+```bash
+# Run migrations
+npm run db:migrate
 
-## 📱 Multi-Device Support
-
-```mermaid
-sequenceDiagram
-    participant Device1
-    participant Backend
-    participant PostgreSQL
-    participant Redis
-    participant Device2
-    
-    Note over Device1: User signs in on Device 1
-    
-    Device1->>Backend: POST /auth/google-signin<br/>{deviceInfo: Device1}
-    Backend->>PostgreSQL: Create device record<br/>{deviceId: D1, deviceType: "ios"}
-    PostgreSQL-->>Backend: Device created
-    Backend-->>Device1: {accessToken, device: D1}
-    
-    Note over Device2: User signs in on Device 2
-    
-    Device2->>Backend: POST /auth/google-signin<br/>{deviceInfo: Device2}
-    Backend->>PostgreSQL: Create device record<br/>{deviceId: D2, deviceType: "android"}
-    PostgreSQL-->>Backend: Device created
-    Backend-->>Device2: {accessToken, device: D2}
-    
-    Note over Device1: User sends message from Device 1
-    
-    Device1->>Backend: POST /messages<br/>{recipientId, encryptedContent}
-    Backend->>PostgreSQL: Store message
-    Backend->>Redis: Check recipient online devices
-    Redis-->>Backend: [Device3, Device4]
-    
-    Backend->>Backend: Broadcast to all recipient devices<br/>(via WebSocket)
-    Backend->>Device2: Message notification<br/>(if Device2 is recipient)
-    
-    Note over Device2: User reads message on Device 2
-    
-    Device2->>Backend: POST /messages/:id/read
-    Backend->>PostgreSQL: Update message status
-    Backend->>Redis: Update unread count
-    
-    Backend->>Backend: Broadcast read receipt<br/>to all sender devices
-    Backend->>Device1: Read receipt notification<br/>{messageId, readAt}
-    
-    Device1->>Device1: Update UI<br/>Show "read" status
+# Create new migration (manual)
+# Create file in src/migrations/XXX_description.sql
 ```
-
----
-
-**Last Updated:** January 9, 2026  
-**Diagram Format:** Mermaid  
-**View Instructions:** Use Mermaid-compatible viewers (GitHub, VS Code with Mermaid extension, Mermaid Live Editor)
-
-## 🔐 Security Features
-
-- Helmet.js for security headers
-- CORS configuration
-- Rate limiting
-- JWT authentication (to be implemented)
-- Input validation (to be implemented)
-- SQL injection prevention (parameterized queries)
-- XSS protection
 
 ## 📊 Monitoring
 
-- Winston logger with daily rotation
-- Structured JSON logging
-- Health check endpoints
-- Error tracking (Sentry integration in future phases)
-
-## 🚀 Deployment
-
-**For Production Deployment**, see the comprehensive guide: [DEPLOYMENT.md](./DEPLOYMENT.md)
-
-**Key Points:**
-- **Development**: Use Docker Compose on Mac for local databases
-- **Production**: PostgreSQL and Redis installed directly on server
-- Deployment guide includes: server setup, PM2, Nginx, SSL, backups
-
-## 🚧 Development Phases
-
-### ✅ Phase 1: Foundation (Current)
-- Project setup with TypeScript
-- Express app configuration
-- PostgreSQL and Redis connections
-- Logging and error handling
-- Health check endpoint
-- Docker Compose setup
-
-### 🔜 Phase 2: Authentication Service
-- Firebase Admin SDK integration
-- JWT token generation and validation
-- User registration and login
-- Session management
-- Password hashing
-
-### 🔜 Phase 3: User Service
-- User profile CRUD operations
-- User search functionality
-- Profile picture upload
-- User status management
-
-### 🔜 Phase 4: Friendship Service
-- Friend request management
-- State machine for friendship status
-- Block/unblock functionality
-
-### 🔜 Phase 5: Messaging Service
-- REST API for messages
-- WebSocket server setup
-- Message queue for offline users
-- Read receipts and delivery status
-
-### 🔜 Phase 6: Encryption Service
-- Key exchange (X3DH protocol)
-- Double Ratchet implementation
-- Key storage and rotation
-
-### 🔜 Phase 7-10: Advanced Features
-- Media handling
-- Typing indicators
-- Online status
-- Notifications
-- Performance optimization
-
-## 🐛 Troubleshooting
-
-### Database Connection Issues
-
-```bash
-# Check if PostgreSQL is running
-docker-compose ps
-
-# Check PostgreSQL logs
-docker-compose logs postgres
-
-# Test connection manually
-docker-compose exec postgres psql -U postgres -d plasticworld_db
-```
-
-### Redis Connection Issues
-
-```bash
-# Check if Redis is running
-docker-compose ps
-
-# Check Redis logs
-docker-compose logs redis
-
-# Test connection manually
-docker-compose exec redis redis-cli ping
-```
-
-### Port Already in Use
-
-If port 3000 is already in use, change it in `.env`:
-
-```env
-PORT=3001
-```
-
-## 📚 API Documentation
-
-API documentation will be available at `/api/v1/docs` (to be implemented in future phases).
+- **Logging**: Winston with daily rotation
+- **Health Checks**: `/health` endpoint
+- **Error Tracking**: Structured error logging
 
 ## 🤝 Contributing
 
-1. Create a feature branch
-2. Make your changes
-3. Run tests and linting
-4. Submit a pull request
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+- Follow TypeScript best practices
+- Write tests for new features
+- Update documentation
+- Follow the existing code style
+- Add JSDoc comments for public APIs
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ## 📄 License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
-## 👥 Support
+## 🙏 Acknowledgments
 
-For issues and questions, please open an issue on GitHub.
+- Signal Protocol for encryption algorithms
+- Firebase for authentication
+- Express.js community
+- All contributors
+
+## 👨‍💻 Author
+
+**Yaduraj Singh**
+
+- GitHub: [@yadurajsingh](https://github.com/yadurajsingh)
+- Project: [PlasticWorld Backend](https://github.com/yourusername/plasticworld-backend)
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/plasticworld-backend/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/plasticworld-backend/discussions)
 
 ---
 
-**Note**: This is Phase 1 of the implementation. Additional features will be added in subsequent phases.
+**Made with ❤️ for secure, real-time messaging**
+
+**Developed and Designed by Yaduraj Singh**

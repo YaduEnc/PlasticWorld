@@ -35,12 +35,11 @@ COPY --chown=nodejs:nodejs package*.json ./
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force
 
-# Copy built application from builder (with ownership)
+# Copy built application from builder
 COPY --chown=nodejs:nodejs --from=builder /app/dist ./dist
 
-# Copy necessary files (with ownership)
-COPY --chown=nodejs:nodejs --from=builder /app/package.json ./
-COPY --chown=nodejs:nodejs --from=builder /app/tsconfig.json ./
+# Create logs directory
+RUN mkdir -p logs && chown nodejs:nodejs logs
 
 # Switch to nodejs user
 USER nodejs

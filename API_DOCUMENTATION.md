@@ -2,8 +2,7 @@
 
 **Version:** 1.0.0  
 **Base URL:** `http://localhost:3000/api/v1` (Development)  
-**Production URL:** `https://plasticworld.yaduraj.me/api/v1` (Production)  
-**WebSocket URL:** `wss://plasticworld.yaduraj.me` (Production)
+**WebSocket URL:** `ws://localhost:3000` (Development)
 
 ## 📋 Table of Contents
 
