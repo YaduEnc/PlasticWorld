@@ -30,20 +30,17 @@ RUN addgroup -g 1001 -S nodejs && \
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY --chown=nodejs:nodejs package*.json ./
 
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force
 
-# Copy built application from builder
-COPY --from=builder /app/dist ./dist
+# Copy built application from builder (with ownership)
+COPY --chown=nodejs:nodejs --from=builder /app/dist ./dist
 
-# Copy necessary files
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/tsconfig.json ./
-
-# Change ownership to nodejs user
-RUN chown -R nodejs:nodejs /app
+# Copy necessary files (with ownership)
+COPY --chown=nodejs:nodejs --from=builder /app/package.json ./
+COPY --chown=nodejs:nodejs --from=builder /app/tsconfig.json ./
 
 # Switch to nodejs user
 USER nodejs

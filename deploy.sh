@@ -27,6 +27,8 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 echo -e "${YELLOW}📦 Building Docker images...${NC}"
+# Export env vars for build (Docker Compose needs them during build)
+export $(grep -v '^#' .env.production | xargs)
 docker compose -f docker-compose.prod.yml build --no-cache
 
 echo -e "${YELLOW}🛑 Stopping existing containers...${NC}"

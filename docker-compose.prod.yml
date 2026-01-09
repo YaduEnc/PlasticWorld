@@ -41,6 +41,8 @@ services:
     image: postgres:15-alpine
     container_name: plasticworld-postgres
     restart: unless-stopped
+    env_file:
+      - .env.production
     environment:
       POSTGRES_DB: ${DB_NAME:-plasticworld_db}
       POSTGRES_USER: ${DB_USER:-postgres}
@@ -68,6 +70,8 @@ services:
     image: redis:7-alpine
     container_name: plasticworld-redis
     restart: unless-stopped
+    env_file:
+      - .env.production
     command: >
       sh -c "
       if [ -n \"$$REDIS_PASSWORD\" ]; then
@@ -83,7 +87,14 @@ services:
     networks:
       - plasticworld-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: >
+        sh -c "
+        if [ -n \"$$REDIS_PASSWORD\" ]; then
+          redis-cli -a \"$$REDIS_PASSWORD\" ping
+        else
+          redis-cli ping
+        fi
+        "
       interval: 10s
       timeout: 5s
       retries: 5
