@@ -20,7 +20,8 @@
     "db:seed": "node dist/seeders/seed.js",
     "serve:token-page": "node serve-token-page.js",
     "serve:token": "node serve-token-page.js",
-    "serve:test-page": "node serve-test-page.js"
+    "serve:test-page": "node serve-test-page.js",
+    "serve:friends-page": "node serve-friends-page.js"
   },
   "keywords": [
     "messaging",

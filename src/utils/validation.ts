@@ -77,6 +77,40 @@ export const updateStatusSchema = z.object({
   }),
 });
 
+/**
+ * Validation schemas for friendship endpoints
+ */
+
+// Send Friend Request
+export const sendFriendRequestSchema = z.object({
+  userId: z.string().uuid('Invalid user ID format'),
+});
+
+// Block User
+export const blockUserSchema = z.object({
+  reason: z.string().max(500, 'Reason must be at most 500 characters').optional(),
+});
+
+// Friendship Query Parameters
+export const friendshipQuerySchema = z
+  .object({
+    status: z.enum(['accepted', 'pending', 'denied', 'blocked']).optional(),
+    limit: z.string().optional(),
+    offset: z.string().optional(),
+  })
+  .transform((data) => ({
+    status: data.status as 'accepted' | 'pending' | 'denied' | 'blocked' | undefined,
+    limit: data.limit ? parseInt(data.limit, 10) : 50,
+    offset: data.offset ? parseInt(data.offset, 10) : 0,
+  }))
+  .pipe(
+    z.object({
+      status: z.enum(['accepted', 'pending', 'denied', 'blocked']).optional(),
+      limit: z.number().int().min(1).max(100),
+      offset: z.number().int().min(0),
+    })
+  );
+
 // Search Users Query Parameters
 export const searchUsersQuerySchema = z
   .object({

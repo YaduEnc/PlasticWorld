@@ -23,6 +23,7 @@ const corsOptions = {
     'http://localhost:3000',
     'http://localhost:8080',
     'http://localhost:8081',
+    'http://localhost:8082',
     'http://localhost:5173',
   ],
   credentials: true,
@@ -109,10 +110,12 @@ const apiVersion = process.env.API_VERSION || 'v1';
 // Import routes
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
+import friendRoutes from './routes/friend.routes';
 
 // Mount routes
 app.use(`/api/${apiVersion}/auth`, authRoutes);
 app.use(`/api/${apiVersion}/users`, userRoutes);
+app.use(`/api/${apiVersion}/friends`, friendRoutes);
 
 // API root endpoint
 app.get(`/api/${apiVersion}`, (_req: Request, res: Response) => {
@@ -124,6 +127,7 @@ app.get(`/api/${apiVersion}`, (_req: Request, res: Response) => {
     endpoints: {
       auth: `/api/${apiVersion}/auth`,
       users: `/api/${apiVersion}/users`,
+      friends: `/api/${apiVersion}/friends`,
     },
   });
 });
