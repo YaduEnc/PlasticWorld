@@ -19,15 +19,15 @@ while IFS='=' read -r key value || [ -n "$key" ]; do
   [[ "$key" =~ ^[[:space:]]*#.*$ ]] && continue
   [[ -z "$key" ]] && continue
   
-  # Remove ALL leading/trailing whitespace from key and value
-  key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  # Remove ALL leading/trailing whitespace from key and value (more robust)
+  key=$(echo -n "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr -d '\r\n')
+  value=$(echo -n "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr -d '\r\n')
   
   # Skip if key is empty after trimming
   [[ -z "$key" ]] && continue
   
-  # Remove quotes if present
-  value=$(echo "$value" | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
+  # Remove quotes if present and trim again
+  value=$(echo -n "$value" | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr -d '\r\n')
   
   # Special handling for DB_HOST and REDIS_HOST
   if [ "$key" = "DB_HOST" ]; then
@@ -35,8 +35,8 @@ while IFS='=' read -r key value || [ -n "$key" ]; do
   elif [ "$key" = "REDIS_HOST" ]; then
     echo "      REDIS_HOST: 'localhost'," >> ecosystem.config.js
   else
-    # Escape single quotes and newlines in value
-    value=$(echo "$value" | sed "s/'/\\\'/g" | tr '\n' ' ')
+    # Escape single quotes and newlines in value, ensure no trailing spaces
+    value=$(echo -n "$value" | sed "s/'/\\\'/g" | tr '\n' ' ' | sed 's/[[:space:]]*$//')
     echo "      $key: '$value'," >> ecosystem.config.js
   fi
 done < .env.production
