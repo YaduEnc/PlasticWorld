@@ -16,6 +16,11 @@ http://localhost:3000/api/v1
 https://plasticworld.yaduraj.me/api/v1
 ```
 
+**WebSocket (Production):**
+```
+wss://plasticworld.yaduraj.me
+```
+
 ### 2. Authentication Flow
 
 ```swift
