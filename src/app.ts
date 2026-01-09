@@ -113,12 +113,14 @@ import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import friendRoutes from './routes/friend.routes';
 import messageRoutes from './routes/message.routes';
+import encryptionRoutes from './routes/encryption.routes';
 
 // Mount routes
 app.use(`/api/${apiVersion}/auth`, authRoutes);
 app.use(`/api/${apiVersion}/users`, userRoutes);
 app.use(`/api/${apiVersion}/friends`, friendRoutes);
 app.use(`/api/${apiVersion}/messages`, messageRoutes);
+app.use(`/api/${apiVersion}/encryption`, encryptionRoutes);
 
 // API root endpoint
 app.get(`/api/${apiVersion}`, (_req: Request, res: Response) => {
@@ -132,6 +134,7 @@ app.get(`/api/${apiVersion}`, (_req: Request, res: Response) => {
       users: `/api/${apiVersion}/users`,
       friends: `/api/${apiVersion}/friends`,
       messages: `/api/${apiVersion}/messages`,
+      encryption: `/api/${apiVersion}/encryption`,
     },
   });
 });

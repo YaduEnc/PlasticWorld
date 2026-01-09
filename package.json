@@ -35,6 +35,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@stablelib/chacha20poly1305": "^2.0.1",
+    "@stablelib/hkdf": "^2.0.1",
+    "@stablelib/x25519": "^2.0.1",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
@@ -52,6 +55,8 @@
     "pg": "^8.11.3",
     "redis": "^4.6.12",
     "socket.io": "^4.6.1",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1",
     "uuid": "^9.0.1",
     "winston": "^3.11.0",
     "winston-daily-rotate-file": "^4.7.1",
