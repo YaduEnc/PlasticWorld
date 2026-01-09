@@ -33,25 +33,37 @@ class Database {
 
       // Test connection with manual timeout
       logger.info('Testing PostgreSQL connection...');
-      const connectPromise = this.pool.connect();
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => {
-          reject(new Error('PostgreSQL connection timeout after 15 seconds'));
-        }, 15000);
-      });
-      
-      const client = await Promise.race([connectPromise, timeoutPromise]) as any;
-      logger.info('Connection acquired, testing query...');
-      const result = await client.query('SELECT NOW()');
-      client.release();
-      logger.info('Connection test successful');
+      try {
+        const connectPromise = this.pool.connect();
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error('PostgreSQL connection timeout after 15 seconds'));
+          }, 15000);
+        });
+        
+        const client = await Promise.race([connectPromise, timeoutPromise]);
+        logger.info('Connection acquired, testing query...');
+        const result = await client.query('SELECT NOW()');
+        client.release();
+        logger.info('Connection test successful');
 
-      logger.info('PostgreSQL connected successfully', {
-        host: config.host,
-        port: config.port,
-        database: config.database,
-        timestamp: result.rows[0].now,
-      });
+        logger.info('PostgreSQL connected successfully', {
+          host: config.host,
+          port: config.port,
+          database: config.database,
+          timestamp: result.rows[0].now,
+        });
+      } catch (error) {
+        logger.error('PostgreSQL connection failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          host: config.host,
+          port: config.port,
+          database: config.database,
+          user: config.user,
+        });
+        throw error;
+      }
 
       // Handle pool errors
       this.pool.on('error', (err: Error) => {
