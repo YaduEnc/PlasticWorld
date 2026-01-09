@@ -272,6 +272,14 @@ export function initializeSocket(httpServer: HTTPServer): SocketIOServer {
         // Notify sender
         io.to(`user:${message.senderId}`).emit('message:read', {
           messageId: data.messageId,
+          senderId: message.senderId,
+          userId,
+        });
+        
+        // Also notify the reader (current user) to update their unread count
+        io.to(`user:${userId}`).emit('message:read', {
+          messageId: data.messageId,
+          senderId: message.senderId,
           userId,
         });
       } catch (error) {
@@ -293,6 +301,14 @@ export function initializeSocket(httpServer: HTTPServer): SocketIOServer {
         // Notify sender
         io.to(`user:${data.senderId}`).emit('messages:read', {
           messageIds: data.messageIds,
+          senderId: data.senderId,
+          userId,
+        });
+        
+        // Also notify the reader (current user) to update their unread count
+        io.to(`user:${userId}`).emit('messages:read', {
+          messageIds: data.messageIds,
+          senderId: data.senderId,
           userId,
         });
       } catch (error) {

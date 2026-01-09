@@ -669,6 +669,7 @@ class MessageService {
     lastMessage?: {
       id: string;
       messageType: string;
+      encryptedContent: string | null;
       sentAt: Date;
       status: string;
     };
@@ -682,6 +683,7 @@ class MessageService {
         otherProfilePictureUrl: string;
         lastMessageId: string;
         lastMessageType: string;
+        lastMessageEncryptedContent: Buffer | null;
         lastMessageSentAt: Date;
         lastMessageStatus: string;
         unreadCount: string;
@@ -700,6 +702,7 @@ class MessageService {
             cp.other_user_id,
             m.id as last_message_id,
             m.message_type as last_message_type,
+            m.encrypted_content as last_message_encrypted_content,
             m.sent_at as last_message_sent_at,
             m.status as last_message_status
           FROM conversation_partners cp
@@ -727,6 +730,7 @@ class MessageService {
           u.profile_picture_url as "otherProfilePictureUrl",
           lm.last_message_id as "lastMessageId",
           lm.last_message_type as "lastMessageType",
+          lm.last_message_encrypted_content as "lastMessageEncryptedContent",
           lm.last_message_sent_at as "lastMessageSentAt",
           lm.last_message_status as "lastMessageStatus",
           COALESCE(uc.unread_count, 0)::text as "unreadCount"
@@ -739,19 +743,27 @@ class MessageService {
         [userId]
       );
 
-      return result.rows.map((row) => ({
-        userId: row.otherUserId,
-        username: row.otherUsername,
-        name: row.otherName,
-        profilePictureUrl: row.otherProfilePictureUrl,
-        lastMessage: row.lastMessageId ? {
-          id: row.lastMessageId,
-          messageType: row.lastMessageType,
-          sentAt: row.lastMessageSentAt,
-          status: row.lastMessageStatus,
-        } : undefined,
-        unreadCount: parseInt(row.unreadCount, 10),
-      }));
+      return result.rows.map((row) => {
+        // Convert Buffer to base64 string for encryptedContent
+        const encryptedContent = row.lastMessageEncryptedContent
+          ? row.lastMessageEncryptedContent.toString('base64')
+          : null;
+
+        return {
+          userId: row.otherUserId,
+          username: row.otherUsername,
+          name: row.otherName,
+          profilePictureUrl: row.otherProfilePictureUrl,
+          lastMessage: row.lastMessageId ? {
+            id: row.lastMessageId,
+            messageType: row.lastMessageType,
+            encryptedContent,
+            sentAt: row.lastMessageSentAt,
+            status: row.lastMessageStatus,
+          } : undefined,
+          unreadCount: parseInt(row.unreadCount, 10),
+        };
+      });
     } catch (error) {
       logger.error('Failed to get conversations', {
         error: error instanceof Error ? error.message : 'Unknown error',
