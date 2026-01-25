@@ -1075,7 +1075,7 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 **Yaduraj Singh**
 
 - Email: yadurajsingham@gmail.com
-- GitHub: [@yadurajsingh](https://github.com/yadurajsingh)
+- GitHub: [@YadurajManu](https://github.com/YadurajManu)
 - Project: [PlasticWorld Backend](https://github.com/YaduEnc/PlasticWorld)
 
 ## 📞 Support
